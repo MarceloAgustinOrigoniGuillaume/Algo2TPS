@@ -2,7 +2,6 @@ package main
 
 import (
 	TDASesion "sesion_votar"
-	//Testing "test"
 	"fmt"
 	"os"
 	"strconv"
