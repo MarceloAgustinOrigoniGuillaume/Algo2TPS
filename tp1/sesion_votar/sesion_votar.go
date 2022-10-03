@@ -2,19 +2,16 @@ package sesion_votar
 
 import (
 	TDACola "cola"
-	TDAPila "pila"
-	TDALista "lista"
-	"fmt"
-	"strings"
 	"strconv"
 )
+
+
 type sesionVotar struct{
-	aVotar TDACola.Cola[*votanteStruct]
-	yaVotaron TDALista.Lista[int]
-	listaCandidatos [][]candidatoStruct
-	padronesValidos []int
 	identificadores_tipos []string
-	accionesVotante TDAPila.Pila[func()] // se podria hacer desde el Votante.. pero no quiero desperdiciar memoria
+	listaCandidatos [][]candidatoStruct
+	aVotar []Votante
+	esperandoAVotar TDACola.Cola[Votante]
+	registroDeVotos Registro
 	votosImpugnados int
 }
 
@@ -24,14 +21,12 @@ func CrearSesion(identificadores_tipos []string,candidatos_file string,padrones_
 	sesion := new(sesionVotar)
 
 
-	sesion.aVotar = TDACola.CrearColaEnlazada[*votanteStruct]()
-	sesion.accionesVotante = TDAPila.CrearPilaDinamica[func()]()
-	sesion.yaVotaron = TDALista.CrearListaEnlazada[int]()
-
-
+	sesion.esperandoAVotar = TDACola.CrearColaEnlazada[Votante]()
+	sesion.registroDeVotos = CrearRegistroDeVotos()
 	// Cargar candidatos y padrones/dnis
 
 	sesion.identificadores_tipos = identificadores_tipos
+	
 	if(candidatos_file == BASIC_SAMPLE){
 		sesion.listaCandidatos = popularCandidatosBasico()
 	} else{
@@ -39,17 +34,28 @@ func CrearSesion(identificadores_tipos []string,candidatos_file string,padrones_
 	}
 
 	if(candidatos_file == BASIC_SAMPLE){
-		sesion.padronesValidos = popularDNISBasico()
+		sesion.aVotar = popularVotantesBasico(len(identificadores_tipos))
 	} else{
-		sesion.padronesValidos = popularDNIS(padrones_file)
+		sesion.aVotar = popularVotantes(padrones_file,len(identificadores_tipos))
 	}
 	
 
 	return sesion
 }
 
+// funciones auxiliares
 
-// funciones para hacer con comandos strings.. podrian estar aparte? capaz
+// deberia hacerse busqueda binaria   
+func buscarVotante(lista_dni []Votante,dni int) Votante { 
+	for _,votante := range lista_dni{
+		if(votante.DNI() == dni){
+			return votante
+		}
+	}
+
+	return nil
+}
+
 
 func (sesion *sesionVotar) indiceTipo(tipo string) int{
 	for i,valor := range sesion.identificadores_tipos{
@@ -60,220 +66,112 @@ func (sesion *sesionVotar) indiceTipo(tipo string) int{
 	return -1
 }
 
-func (sesion *sesionVotar) AccionDesdeComando(comando string) string{
-	// Me encantaria usar un hash de strings... ie comandos a funciones, igual sirven dos arreglos y ya
-	// Se que se podria usar simplemente ifs, o un switch, pero ni ganas de hacerlos y ademas es mas facil de escalar de esta forma
-	
-	if(comando == "fin-votar"){
-		return sesion.SiguienteVotante()
-	} else if(comando == "deshacer"){
-		return sesion.Deshacer()
-	}
 
-
-
-	args := strings.Split(comando," ")
-
-	if(args[0] == "ingresar"){
-
-		if(len(args) < 2){ // yo pondria != pero el error es solo en falta
-			return ERROR_FALTAN_PARAMETROS
-		}
-		// validame el dni
-
-		dni,error := strconv.Atoi(args[1])
-		if(error != nil || dni <0){
-			return ERROR_DNI_INVALIDO
-		}
-
-		return  sesion.IngresarVotante(dni)
-
-	}
-
-	if(args[0] == "votar"){
-
-		if(len(args) < 3){
-			return ERROR_FALTAN_PARAMETROS
-		}
-		tipo := sesion.indiceTipo(args[1])
-
-		if tipo == -1{
-			return ERROR_TIPO_INVALIDO
-		}
-
-		// validame el dni
-
-		candidato,error := strconv.Atoi(args[2])
-		if(error != nil){
-			return ERROR_ALTERNATIVA_INVALIDA
-		}
-
-		// validame el tipo voto y candidato
-
-
-		return sesion.Votar(tipo,candidato)
-	}
-	
-	return ERROR_COMANDO_INVALIDO
-
-}
-
-
-
-//funciones de utilidad interna
-
-func (sesion *sesionVotar) yaVoto(dni int) bool{
-	// ESTA BUSQUEDA ES LINEAL , VALE LA PENA ORDENAR? LA BUSQUEDA BINARIA NO CONVENZE CON UNA LISTA ENLAZADA
-	// SE TIENE QUE REVISAR....
-	iterador := sesion.yaVotaron.Iterador() 
-
-	for iterador.HaySiguiente() && iterador.VerActual() <= dni {
-		if(iterador.Siguiente() == dni){ // Siguiente retorna el actual, por eso usamos el for con <=
-			return true
-		}
-	}
-
-	return false
-}
-
-func (sesion *sesionVotar) contarVotante(dni int) bool{
-	// CAPAZ HAY UNA MEJOR FORMA
-	// Se agrega el votante a los que votaron si no se agrego ya. Retorna si se agrego. Si no lo hizo era fraude
-	// Se ingresara mediante insercion, al irse agregando de a uno es lo mas eficiente.
-	// Y al mismo tiempo se verifica que no este.
-
-	iterador := sesion.yaVotaron.Iterador()
-
-	for iterador.HaySiguiente() && iterador.VerActual() <= dni {
-		if(iterador.Siguiente() == dni){ // Siguiente retorna el actual, por eso usamos el for con <=
-			return false
-		}
-	}
-	iterador.Insertar(dni)
-
-	return true
-
-
-}
-
-func (sesion *sesionVotar) limpiarAcciones(){
-	for !sesion.accionesVotante.EstaVacia(){
-		sesion.accionesVotante.Desapilar()
-	}
-}
-
-// implementacion
-
+// interfaz
 
 func (sesion *sesionVotar) HayVotante() bool{
-	return !sesion.aVotar.EstaVacia()
+	return !sesion.esperandoAVotar.EstaVacia()
 }
 
-
-func (sesion *sesionVotar) IngresarVotante(dni int) string{
-	if(!Contiene(sesion.padronesValidos,dni)){
-		return ERROR_DNI_NO_ESTA
+func (sesion *sesionVotar) IngresarVotante(dniStr string) error{
+	dni,err := strconv.Atoi(dniStr)
+		
+	if(err != nil || dni <0){
+		return new(ErrorDNIInvalido)
 	}
-	// Encolar, requiere Cola, struct votante.
-	sesion.aVotar.Encolar(crearVotante(dni,len(sesion.listaCandidatos)))
-	return OK
+
+	votante := buscarVotante(sesion.aVotar,dni)
+
+	if(votante == nil){
+		return new(ErrorDNINoEsta)
+	} 
+	sesion.esperandoAVotar.Encolar(votante)
+	return nil
 }
 
-func (sesion *sesionVotar) Votar(tipo int, candidato int) string{
-	if !sesion.HayVotante(){
-		return ERROR_FILA_VACIA
+func (sesion *sesionVotar) Votar(tipoStr string, candidatoStr string) error{
+
+	// Verificaciones
+	if(sesion.esperandoAVotar.EstaVacia()){
+		return new(ErrorFilaVacia)
+	}
+	// Se prefiere a hacer los chequeos en sesion votar
+	// ya que no se quiere guardar en votante la cantidad de candidatos ni tampoco hacer un switch con errores
+	tipo:= sesion.indiceTipo(tipoStr)
+
+	if tipo == -1{
+		return new(ErrorTipoInvalido)
 	}
 
-	if(sesion.yaVoto(sesion.aVotar.VerPrimero().dni)){
+
+	candidato,err := strconv.Atoi(candidatoStr)
+	if(err != nil || candidato<0 || candidato >= len(sesion.listaCandidatos[tipo])){
+		return new(ErrorAlternativaInvalida)
+	}
+
+	if sesion.esperandoAVotar.VerPrimero().YaVoto() {
 		sesion.votosImpugnados++
-		return fmt.Sprintf(ERROR_VOTANTE_FRAUDULENTO,sesion.aVotar.Desencolar().dni)
+		return CrearErrorFraude(sesion.esperandoAVotar.Desencolar().DNI())
 	}
 
+	// Cambio de voto
+	sesion.registroDeVotos.Agregar(sesion.esperandoAVotar.VerPrimero().CambiameElVoto(tipo,candidato))
 
-	if (tipo<0 ||tipo >= len(sesion.listaCandidatos)){
-		return ERROR_TIPO_INVALIDO
-	}
-
-	candidatos := sesion.listaCandidatos[tipo]
-	if (candidato<0 || candidato >= len(candidatos)){
-		return ERROR_ALTERNATIVA_INVALIDA
-	}
-
-
-	votante := sesion.aVotar.VerPrimero()
-	valor_actual := votante.votos[tipo]
-	sesion.accionesVotante.Apilar(func() {votante.votos[tipo] = valor_actual} )
-	votante.votos[tipo] = candidato
-
-
-	return OK
-	//return nil
+	return nil
 }
 
-
-func (sesion *sesionVotar) Deshacer() string{
-	if(sesion.aVotar.EstaVacia()){
-		return ERROR_FILA_VACIA
+func (sesion *sesionVotar) Deshacer() error{
+	if(sesion.esperandoAVotar.EstaVacia()){
+		return new(ErrorFilaVacia)
 	}
 
-	if(sesion.yaVoto(sesion.aVotar.VerPrimero().dni)){
+	if sesion.esperandoAVotar.VerPrimero().YaVoto(){
 		sesion.votosImpugnados++
-		return fmt.Sprintf(ERROR_VOTANTE_FRAUDULENTO,sesion.aVotar.Desencolar().dni)
+		return CrearErrorFraude(sesion.esperandoAVotar.Desencolar().DNI())
 	}
 
-	if(sesion.accionesVotante.EstaVacia()){
-		return ERROR_SIN_VOTO_DESHACER
-	}
-
-	
-	sesion.accionesVotante.Desapilar()()
-	return OK
+	return sesion.registroDeVotos.Borrar()
 }
 
-func (sesion *sesionVotar) SiguienteVotante() string {
-	// Desencola , requiere Cola, struct votante.
-	// Si no hay votante bla bla.
+func (sesion *sesionVotar) SiguienteVotante() error {
 
-	if(sesion.aVotar.EstaVacia()){
-		return ERROR_FILA_VACIA
+	if(sesion.esperandoAVotar.EstaVacia()){
+		return new(ErrorFilaVacia)
 	}
 
-	sesion.limpiarAcciones()
+	sesion.registroDeVotos.Vaciar()
+	votante:= sesion.esperandoAVotar.Desencolar()
+	err := votante.FinalizarVoto()
 
-	votante := sesion.aVotar.Desencolar()
-	if(!sesion.contarVotante(votante.dni)){
+	if(err != nil){ // unico error posible es fraude
 		sesion.votosImpugnados++
-		return fmt.Sprintf(ERROR_VOTANTE_FRAUDULENTO,votante.dni)
+	} else{
+		votante.MirarVotos(func(tipo int, candidato int) {
+			sesion.listaCandidatos[tipo][candidato].votantes++
+		})
+
 	}
 
-
-	for tipo,candidato := range votante.votos{
-		sesion.listaCandidatos[tipo][candidato].votantes++
-	}
-
-	//sesion.agregarVoto(votante) // se quiso usar una funcion auxiliar pero para un for, que solo se usa aca no lo vale
-	//return nil
-	return OK
+	return err
 }
 
-func (sesion *sesionVotar) Finalizar() string{
+func (sesion *sesionVotar) Finalizar() error{
+	var err error = nil
 	
-	// Aca se muestra por defecto el resultado esto capaz se decide cambiarlo
-	//MostrarEstado(sesion.identificadores_tipos,sesion)
-
-
-	// Tambien se deberia mandar a dormir a la sesion, se supone se finalizo
-	// Es decir pasar a modo solo lectura. Pero eso no se va a modificar porque si bien puede ser logico
-	// tampoco es completamente necesario
-	
-	if !sesion.aVotar.EstaVacia() {
-		return ERROR_SIN_TERMINAR
+	if !sesion.esperandoAVotar.EstaVacia() {
+		err = new(ErrorSinTerminar)
 	}
 
-	return OK
+	// para evitar su uso a futuro una vez se finalizo
+	sesion.aVotar = make([]Votante,0) 
+
+	return err
 }
 
 
+
+
+// Funciones para tests/informacion
 func (sesion *sesionVotar) VotosImpugnados() int{
 	return sesion.votosImpugnados
 }
