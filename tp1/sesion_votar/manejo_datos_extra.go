@@ -8,6 +8,19 @@ import (
 )
 
 
+func ReadAll(archivo *os.File) string{
+	res := ""
+	var err error = nil
+	count:= 1
+	buffer := make([]byte,256)
+	for err == nil && count >0{
+		res += string(buffer[:count])
+		count,err = archivo.Read(buffer)
+	}
+
+	return res
+}
+
 func LeerArchivos(url string,url2 string,haceAlgo func([]byte,[]byte) bool) error{
 	archivo,err := os.Open(url)
 	if(err != nil){

@@ -5,6 +5,7 @@ import(
 	"github.com/stretchr/testify/require"
 	"testing"
 	"fmt"
+	"os"
 )
 
 func crearSesionBasica() TDASesion.SesionVotar{
@@ -415,6 +416,29 @@ func TestsFuncionales(t *testing.T){
 
 
 func TestDesdeArchivos(t *testing.T){
-	testDesdeArchivosRequireLog(t,"../archivos/set1/listas","../archivos/set1/padrones","../archivos/set1/in","../archivos/set1/out")
+	t.Log("La idea principal es testear que se puede cargar desde archivos de forma sencilla")
+	testDesdeArchivosRequire(t,"../archivos/set1/listas","../archivos/set1/padrones","../archivos/set1/in","../archivos/set1/out")
 	testDesdeArchivosStreamRequire(t,"../archivos/set1/listas","../archivos/set1/padrones","../archivos/set1/in","../archivos/set1/out")
+}
+
+func getUrlBaseCatedra(num_test int) string{
+	return fmt.Sprintf("../archivos/testsCatedra/%02d",num_test)
+}
+
+func TestCatedra(t *testing.T){
+	t.Log("Se va a testear de forma iterativa los tests de la catedra")
+	for i:= 1;i<11;i++{
+		url := getUrlBaseCatedra(i)
+		archivo,err := os.Open(url+".test")
+		if(err != nil){
+			t.Log(err.Error())
+			continue
+		}
+
+		t.Log(url+":"+TDASesion.ReadAll(archivo))
+		archivo.Close()
+	}
+
+
+
 }
