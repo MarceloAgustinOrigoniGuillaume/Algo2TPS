@@ -2,6 +2,7 @@ package sesion_votar_test
 
 import(
 	TDASesion "sesion_votar"
+	TDALista "lista"
 	"github.com/stretchr/testify/require"
 	"testing"
 	"fmt"
@@ -9,8 +10,9 @@ import(
 )
 
 func crearSesionBasica() TDASesion.SesionVotar{
-	return TDASesion.CrearSesion([]string{"Presidente","Gobernador","Intendente"},
+	sesion,_:= TDASesion.CrearSesion([]string{"Presidente","Gobernador","Intendente"},
 						 TDASesion.BASIC_SAMPLE, TDASesion.BASIC_SAMPLE)
+	return sesion
 }
 
 type TestPair struct{
@@ -23,7 +25,7 @@ func testearPairRequire(t *testing.T,sesion TDASesion.SesionVotar,pair TestPair)
 }
 
 func testearPairRequireLog(t *testing.T,sesion TDASesion.SesionVotar,pair TestPair){
-	t.Log(fmt.Sprintf("Ingresando y validando resultado comando '%s' res = '%s'",pair.comando,pair.expected))
+	t.Log(fmt.Sprintf("->%s res = '%s'",pair.comando,pair.expected))
 	testearPairRequire(t,sesion,pair)
 }
 
@@ -31,50 +33,18 @@ func testearPairRequireLog(t *testing.T,sesion TDASesion.SesionVotar,pair TestPa
 
 func testearComandosSucesionRequire(t *testing.T,sesion TDASesion.SesionVotar,pairs []TestPair){
 	for _,pair := range pairs{
-		//fmt.Printf("\n%s",TestPair)
+		//fmt.Printf("%s",TestPair)
 		testearPairRequire(t,sesion,pair)
 	}
 }
 
 func testearComandosSucesionRequireLog(t *testing.T,sesion TDASesion.SesionVotar,pairs []TestPair){
 	for _,pair := range pairs{
-		//fmt.Printf("\n%s",TestPair)
+		//fmt.Printf("%s",TestPair)
 		testearPairRequireLog(t,sesion,pair)
 	}
 }
 
-
-// Estas funciones de ahora son vestigios del pasado ja antes de darme cuenta podia usar el sistema de tests...
-func testearPair(sesion TDASesion.SesionVotar,pair TestPair) string{
-	res:= TDASesion.AccionComandoAString(sesion,pair.comando)
-	if res != pair.expected{
-		return fmt.Sprintf("expected '%s' got '%s'",pair.expected,res)
-	}
-
-	return ""
-}
-
-func testearComandosSucesion(sesion TDASesion.SesionVotar,pairs []TestPair){
-	
-	errores := ""
-	
-	for _,pair := range pairs{
-		//fmt.Printf("\n%s",TestPair)
-		error:= testearPair(sesion,pair)
-		if(error != ""){
-			errores+= "\n"+error
-		}
-	}
-
-	if(errores == ""){
-		errores = "\nTODO OK"
-	}
-	errores += "\n"
-
-	fmt.Printf(errores)
-}
-
-// end vestigios
 
 
 
@@ -84,8 +54,12 @@ func testearComandosSucesion(sesion TDASesion.SesionVotar,pairs []TestPair){
 
 
 func pairsDesdeArchivos(archivo_input string,archivo_output string) ([]TestPair,error){
-	pares,err := TDASesion.CrearArregloDeArchivo[TestPair](archivo_input,func (bytes []byte) (TestPair,error){
-			return TestPair{string(bytes),""},nil
+	
+
+	pares,err := TDASesion.CrearArregloDeArchivo[TestPair](archivo_input,
+		func (lista TDALista.Lista[TestPair],bytes []byte) error{
+			lista.InsertarUltimo(TestPair{string(bytes),""})
+			return nil
 		})
 
 	if(err == nil){
@@ -118,24 +92,20 @@ func pairsDesdeArchivos(archivo_input string,archivo_output string) ([]TestPair,
 
 	return pares,err
 
-	/*
-	// defecto...
-	return []TestPair{
-			TestPair{"ingresar 1",TDASesion.OK},
-			TestPair{"ingresar 2",TDASesion.OK},
-			TestPair{"ingresar 200",TDASesion.ERROR_DNI_NO_ESTA},
-			TestPair{"ingresar 50",TDASesion.ERROR_DNI_NO_ESTA}}
-
-	*/
 }
 
 func testDesdeArchivosRequire(t *testing.T,candidatos_url string,padrones_url string,input_file string,out_put_file string){
-	sesion := TDASesion.CrearSesion([]string{"Presidente","Gobernador","Intendente"},candidatos_url,padrones_url)
+	sesion,err := TDASesion.CrearSesion([]string{"Presidente","Gobernador","Intendente"},candidatos_url,padrones_url)
 	
-	testPairs, error := pairsDesdeArchivos(input_file,out_put_file)
+	if(err != nil){
+		t.Log(err)
+		return
+	}
 
-	if(error != nil){
-		t.Log(error)
+	testPairs, err2 := pairsDesdeArchivos(input_file,out_put_file)
+
+	if(err2 != nil){
+		t.Log(err2)
 		return
 	}
 
@@ -144,8 +114,17 @@ func testDesdeArchivosRequire(t *testing.T,candidatos_url string,padrones_url st
 	//sesion.Finalizar()
 }
 
+
+
 func testDesdeArchivosRequireLog(t *testing.T,candidatos_url string,padrones_url string,input_file string,out_put_file string){
-	sesion := TDASesion.CrearSesion([]string{"Presidente","Gobernador","Intendente"},candidatos_url,padrones_url)
+	sesion,err := TDASesion.CrearSesion([]string{"Presidente","Gobernador","Intendente"},candidatos_url,padrones_url)
+
+	
+	if(err != nil){
+		t.Log(err)
+		return
+	}
+
 	
 	testPairs, error := pairsDesdeArchivos(input_file,out_put_file)
 
@@ -160,19 +139,19 @@ func testDesdeArchivosRequireLog(t *testing.T,candidatos_url string,padrones_url
 }
 
 
-func testDesdeArchivosStreamRequire(t *testing.T,candidatos_url string,padrones_url string,input_file string,out_put_file string){
-	sesion := TDASesion.CrearSesion([]string{"Presidente","Gobernador","Intendente"},candidatos_url,padrones_url)
+func testDesdeArchivosStreamRequire(t *testing.T,candidatos_url string,padrones_url string,input_file string,out_put_file string) error{
+	sesion,err := TDASesion.CrearSesion([]string{"Presidente","Gobernador","Intendente"},candidatos_url,padrones_url)
 	
-	err := TDASesion.LeerArchivos(input_file,out_put_file, 
+	if(err == nil){
+		err = TDASesion.LeerArchivos(input_file,out_put_file, 
 		func (linea_in []byte,linea_out []byte) bool {
 			testearPairRequire(t,sesion,TestPair{string(linea_in),string(linea_out)})
 			return true
-		})
-
-	if(err != nil){
-		t.Log(err)
-		return
+		})	
 	}
+	
+
+	return err
 
 	//sesion.Finalizar()
 }
@@ -198,9 +177,10 @@ func TestVacio(t *testing.T){
 
 func TestIngresadoComandos(t *testing.T){
 	sesion := crearSesionBasica()
+	t.Log("Se va a probar que los comandos se puedan ejecutar, si no se es invalido y no faltan parametros")
 
 
-	testearComandosSucesionRequireLog(t,sesion, 
+	testearComandosSucesionRequire(t,sesion, 
 			[]TestPair{
 			TestPair{"1",TDASesion.ERROR_COMANDO_INVALIDO},
 			TestPair{"ingresar 2",TDASesion.OK},
@@ -217,6 +197,7 @@ func TestIngresadoComandos(t *testing.T){
 
 // De funcionalidad de comandos
 func TestIngresarVotante(t *testing.T){
+	t.Log("Se va a probar probando ingresar dnis invalidos y validos")
 
 	sesion := crearSesionBasica()
 
@@ -225,6 +206,7 @@ func TestIngresarVotante(t *testing.T){
 			TestPair{"ingresar 1",TDASesion.OK},
 			TestPair{"ingresar 2",TDASesion.OK},
 			TestPair{"ingresar 200",TDASesion.ERROR_DNI_NO_ESTA},
+			TestPair{"ingresar -2",TDASesion.ERROR_DNI_INVALIDO},
 			TestPair{"ingresar 50",TDASesion.ERROR_DNI_NO_ESTA}})	
 
 }
@@ -234,24 +216,27 @@ func TestVotoEnBlanco(t *testing.T){
 
 	sesion := crearSesionBasica()
 
-
-	testearPairRequire(t,sesion,TestPair{"ingresar 1",TDASesion.OK})
-
 	testearComandosSucesionRequire(t,sesion, 
 			[]TestPair{
-			TestPair{"votar Presidente 0",TDASesion.OK}, // capaz este deberia dar error tmbn
+			TestPair{"ingresar 1",TDASesion.OK},
 			TestPair{"votar Intendente 1",TDASesion.OK}, 
 			TestPair{"votar Presidente 1",TDASesion.OK},
 			TestPair{"fin-votar",TDASesion.OK}})
 
+	verificarVotos(t,sesion,"Presidente",[]int{1,0,0,0})
+
+}
+
+func verificarVotos(t *testing.T, sesion TDASesion.SesionVotar,tipo string,expected []int){
 	i:= 0
-	expected := []int{1,0,0,0}
-	sesion.IterarVotos("Presidente",func (credencial string,votos int) bool{
+	sesion.IterarVotos(tipo,func (credencial string,votos int) bool{
+		if(i>= len(expected)){
+			return false
+		}
 		require.EqualValues(t,expected[i],votos)
 		i++
 		return true
 	})
-
 }
 
 func TestVotar(t *testing.T){
@@ -262,7 +247,6 @@ func TestVotar(t *testing.T){
 
 	testearComandosSucesionRequireLog(t,sesion, 
 			[]TestPair{
-			TestPair{"votar Presidente 0",TDASesion.OK}, // capaz este deberia dar error tmbn
 			TestPair{"votar Gobernador 1",TDASesion.OK}, 
 			TestPair{"votar Intendente 1",TDASesion.OK}, 
 			TestPair{"votar Presidente 4",TDASesion.ERROR_ALTERNATIVA_INVALIDA},
@@ -285,19 +269,42 @@ func TestVotar(t *testing.T){
 	}
 	
 
-	i:= 0
-	expected := []int{0,1,0,9}
-	sesion.IterarVotos("Presidente",func (credencial string,votos int) bool{
-		require.EqualValues(t,expected[i],votos)
-		i++
-		return true
-	})
-
+	verificarVotos(t,sesion,"Presidente",[]int{0,1,0,9})	
 	require.EqualValues(t,nil,sesion.Finalizar())
 
 }
 
+func TestVotosImpugnados(t *testing.T){
+	sesion := crearSesionBasica()
 
+	t.Log("Se va a votar al Gobernador 0 y despues varios otros votos se verificara este impugnado")
+	t.Log("Tambien Se va a votar al Presidente 1 y Gobernador 0 y despues al 2 y 1 respectivamente.Despues deshacer y despues varios otros votos se verificara los votos")
+
+	testearComandosSucesionRequire(t,sesion, 
+			[]TestPair{
+			TestPair{"ingresar 1",TDASesion.OK},
+			TestPair{"ingresar 2",TDASesion.OK},
+			TestPair{"votar Gobernador 0",TDASesion.OK}, 
+			TestPair{"votar Gobernador 1",TDASesion.OK}, 
+			TestPair{"votar Intendente 1",TDASesion.OK}, 
+			TestPair{"votar Intendente 2",TDASesion.OK}, 
+			TestPair{"votar Presidente 3",TDASesion.OK},
+			TestPair{"fin-votar",TDASesion.OK},
+			TestPair{"votar Presidente 1",TDASesion.OK},
+			TestPair{"votar Gobernador 0",TDASesion.OK},
+			TestPair{"votar Presidente 2",TDASesion.OK}, 
+			TestPair{"votar Gobernador 1",TDASesion.OK}, 
+			TestPair{"deshacer",TDASesion.OK}, 
+			TestPair{"votar Gobernador 2",TDASesion.OK}, 
+			TestPair{"votar Intendente 1",TDASesion.OK}, 
+			TestPair{"votar Intendente 2",TDASesion.OK},
+			TestPair{"fin-votar",TDASesion.OK}})
+
+	verificarVotos(t,sesion,"Presidente",[]int{0,1,0,0})
+	verificarVotos(t,sesion,"Intendente",[]int{0,0,1,0})
+	verificarVotos(t,sesion,"Gobernador",[]int{0,0,1,0})
+	require.EqualValues(t,1,sesion.VotosImpugnados())
+}
 
 func TestFinVotar(t *testing.T){
 	sesion := crearSesionBasica()
@@ -307,7 +314,6 @@ func TestFinVotar(t *testing.T){
 
 	testearComandosSucesionRequire(t,sesion, 
 			[]TestPair{
-			TestPair{"votar Presidente 0",TDASesion.OK}, // capaz este deberia dar error tmbn
 			TestPair{"votar Gobernador 1",TDASesion.OK}, 
 			TestPair{"votar Intendente 1",TDASesion.OK}, 
 			TestPair{"votar Presidente 4",TDASesion.ERROR_ALTERNATIVA_INVALIDA},
@@ -329,13 +335,8 @@ func TestFinVotar(t *testing.T){
 	}
 	
 
-	i:= 0
-	expected := []int{0,1,0,0}
-	sesion.IterarVotos("Presidente",func (credencial string,votos int) bool{
-		require.EqualValues(t,expected[i],votos)
-		i++
-		return true
-	})
+	verificarVotos(t,sesion,"Presidente",[]int{0,1,0,0})
+
 
 	err:= sesion.Finalizar()
 	require.NotNil(t,err)
@@ -363,22 +364,8 @@ func TestDeshacer(t *testing.T){
 	}
 	
 
-	i:= 0
-	expected := []int{0,10,0,0}
-	sesion.IterarVotos("Presidente",func (credencial string,votos int) bool{
-		require.EqualValues(t,expected[i],votos)
-		i++
-		return true
-	})
-
-	expected[3] = 10
-	expected[1] = 0
-	i=0
-	sesion.IterarVotos("Intendente",func (credencial string,votos int) bool{
-		require.EqualValues(t,expected[i],votos)
-		i++
-		return true
-	})
+	verificarVotos(t,sesion,"Presidente",[]int{0,10,0,0})
+	verificarVotos(t,sesion,"Intendente",[]int{0,0,0,10})
 }
 
 
@@ -387,12 +374,13 @@ func TestDeshacer(t *testing.T){
 func TestFraudulentos(t *testing.T){
 	sesion := crearSesionBasica()
 
-
 	testearPairRequireLog(t,sesion,TestPair{"ingresar 1",TDASesion.OK})
 	testearPairRequire(t,sesion,TestPair{"ingresar 1",TDASesion.OK})
-
-	testearPairRequire(t,sesion,TestPair{"votar Presidente 0",TDASesion.OK})
+	testearPairRequire(t,sesion,TestPair{"votar Presidente 2",TDASesion.OK})
 	testearPairRequireLog(t,sesion,TestPair{"fin-votar",TDASesion.OK})
+
+	t.Log("Se va ingresar devuelta 1 y testear el fraude")
+
 
 	testearPairRequireLog(t,sesion,TestPair{"votar Presidente 0",fmt.Sprintf(TDASesion.ERROR_VOTANTE_FRAUDULENTO,1)})
 	testearPairRequire(t,sesion,TestPair{"ingresar 1",TDASesion.OK})
@@ -400,33 +388,28 @@ func TestFraudulentos(t *testing.T){
 	testearPairRequire(t,sesion,TestPair{"ingresar 1",TDASesion.OK})
 	testearPairRequireLog(t,sesion,TestPair{"fin-votar",fmt.Sprintf(TDASesion.ERROR_VOTANTE_FRAUDULENTO,1)})
 
-	require.EqualValues(t,3,sesion.VotosImpugnados())
+	require.EqualValues(t,0,sesion.VotosImpugnados())
 
 }
-
-
-// Test de resultados finales, con logica algo mas compleja
-
-func TestsFuncionales(t *testing.T){
-
-}
-
-
-
-
 
 func TestDesdeArchivos(t *testing.T){
-	t.Log("La idea principal es testear que se puede cargar desde archivos de forma sencilla")
-	testDesdeArchivosRequire(t,"../archivos/set1/listas","../archivos/set1/padrones","../archivos/set1/in","../archivos/set1/out")
-	testDesdeArchivosStreamRequire(t,"../archivos/set1/listas","../archivos/set1/padrones","../archivos/set1/in","../archivos/set1/out")
+	t.Log("Se verificara que se pueda cargar el sistema desde archivos")
+	testDesdeArchivosRequire(t,"../archivos/set1/candidatos","../archivos/set1/padrones","../archivos/set1/in","../archivos/set1/out")
+	err:= testDesdeArchivosStreamRequire(t,"../archivos/set1/candidatos","../archivos/set1/padrones","../archivos/set1/in","../archivos/set1/out")
+
+	if(err != nil){
+		t.Log(err.Error())
+	}
 }
 
+
 func getUrlBaseCatedra(num_test int) string{
-	return fmt.Sprintf("../archivos/testsCatedra/%02d",num_test)
+	return fmt.Sprintf("../archivos/catedra/%02d",num_test)
 }
 
 func TestCatedra(t *testing.T){
 	t.Log("Se va a testear de forma iterativa los tests de la catedra")
+
 	for i:= 1;i<11;i++{
 		url := getUrlBaseCatedra(i)
 		archivo,err := os.Open(url+".test")
@@ -434,9 +417,17 @@ func TestCatedra(t *testing.T){
 			t.Log(err.Error())
 			continue
 		}
-
-		t.Log(url+":"+TDASesion.ReadAll(archivo))
+		t.Log("-----------------"+TDASesion.ReadAll(archivo)+"\n")
 		archivo.Close()
+
+
+		err = testDesdeArchivosStreamRequire(t,url+"_partidos",url+"_padron",url+"_in",url+"_out")		
+
+		if(err != nil){
+			t.Log(err.Error())
+		} else{
+			t.Log("PASS")			
+		}
 	}
 
 

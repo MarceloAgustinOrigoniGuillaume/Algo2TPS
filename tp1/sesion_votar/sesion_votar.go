@@ -12,12 +12,12 @@ type sesionVotar struct{
 	aVotar []Votante
 	esperandoAVotar TDACola.Cola[Votante]
 	registroDeVotos Registro
-	votosImpugnados int
+	votosImpugnados int // al parecer votos impugnados significaba votos en blanco?
 }
 
 //Funcion crear
 
-func CrearSesion(identificadores_tipos []string,candidatos_file string,padrones_file string) SesionVotar{
+func CrearSesion(identificadores_tipos []string,candidatos_file string,padrones_file string) (SesionVotar,error){
 	sesion := new(sesionVotar)
 
 
@@ -26,33 +26,61 @@ func CrearSesion(identificadores_tipos []string,candidatos_file string,padrones_
 	// Cargar candidatos y padrones/dnis
 
 	sesion.identificadores_tipos = identificadores_tipos
-	
+	var err error = nil
 	if(candidatos_file == BASIC_SAMPLE){
-		sesion.listaCandidatos = popularCandidatosBasico()
+		sesion.listaCandidatos = popularCandidatosBasico(len(sesion.identificadores_tipos)+1)
 	} else{
-		sesion.listaCandidatos = popularCandidatos(candidatos_file)
+		sesion.listaCandidatos,err = popularCandidatos(candidatos_file,len(sesion.identificadores_tipos)+1)
 	}
 
-	if(candidatos_file == BASIC_SAMPLE){
+	if(padrones_file == BASIC_SAMPLE){
 		sesion.aVotar = popularVotantesBasico(len(identificadores_tipos))
 	} else{
-		sesion.aVotar = popularVotantes(padrones_file,len(identificadores_tipos))
+		sesion.aVotar,err = popularVotantes(padrones_file,len(identificadores_tipos))
+	}
+
+	if(err != nil || len(sesion.listaCandidatos) < len(sesion.identificadores_tipos)+1){
+		err = new(ErrorLecturaArchivos)
 	}
 	
 
-	return sesion
+
+	return sesion,err
 }
 
 // funciones auxiliares
 
 // deberia hacerse busqueda binaria   
 func buscarVotante(lista_dni []Votante,dni int) Votante { 
-	for _,votante := range lista_dni{
-		if(votante.DNI() == dni){
-			return votante
-		}
-	}
+		
+	inicio := 0
+	fin := len(lista_dni)
+	medio := (fin+inicio)/2
 
+
+	for medio != inicio && lista_dni[inicio].DNI()<dni && lista_dni[fin-1].DNI()>dni{
+		if(lista_dni[medio].DNI() == dni){
+			return lista_dni[medio]
+		}
+
+		if(lista_dni[medio].DNI() > dni){
+			fin = medio
+		} else{
+			inicio = medio+1
+		}
+
+		medio = (fin+inicio)/2
+	} 
+	
+	if(lista_dni[inicio].DNI() == dni){
+		return lista_dni[inicio]
+	} 
+
+	if(lista_dni[fin-1].DNI() == dni){
+		return lista_dni[fin-1]
+	} 
+
+	
 	return nil
 }
 
@@ -110,7 +138,6 @@ func (sesion *sesionVotar) Votar(tipoStr string, candidatoStr string) error{
 	}
 
 	if sesion.esperandoAVotar.VerPrimero().YaVoto() {
-		sesion.votosImpugnados++
 		return CrearErrorFraude(sesion.esperandoAVotar.Desencolar().DNI())
 	}
 
@@ -126,7 +153,6 @@ func (sesion *sesionVotar) Deshacer() error{
 	}
 
 	if sesion.esperandoAVotar.VerPrimero().YaVoto(){
-		sesion.votosImpugnados++
 		return CrearErrorFraude(sesion.esperandoAVotar.Desencolar().DNI())
 	}
 
@@ -143,12 +169,16 @@ func (sesion *sesionVotar) SiguienteVotante() error {
 	votante:= sesion.esperandoAVotar.Desencolar()
 	err := votante.FinalizarVoto()
 
-	if(err != nil){ // unico error posible es fraude
-		sesion.votosImpugnados++
-	} else{
-		votante.MirarVotos(func(tipo int, candidato int) {
-			sesion.listaCandidatos[tipo][candidato].votantes++
-		})
+	if(err == nil){
+		if(votante.Impugnado()){
+			sesion.votosImpugnados++
+		} else{
+			votante.MirarVotos(func(tipo int, candidato int) {
+				sesion.listaCandidatos[tipo][candidato].votantes++
+			})	
+		}
+
+		
 
 	}
 
@@ -192,5 +222,5 @@ func (sesion *sesionVotar) IterarVotos(identificador string,visitar func(string,
 
 		for i<len(candidatos) && visitar(candidatos[i].Credencial(),candidatos[i].votantes){
 			i++
-		}	
+		}
 }

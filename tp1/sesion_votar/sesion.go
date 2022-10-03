@@ -1,6 +1,6 @@
 package sesion_votar
 //Constante para testeo 
-const BASIC_SAMPLE = "<BasicSample>" // una url no permite normalmente almenos el < ni el >, constante para tests
+const BASIC_SAMPLE = ";Sample;" // una url no permite normalmente almenos el < ni el >, constante para tests
 
 // Interfaz 
 
