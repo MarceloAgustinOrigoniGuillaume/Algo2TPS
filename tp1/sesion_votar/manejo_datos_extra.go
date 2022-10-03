@@ -3,30 +3,10 @@ import (
 	"fmt"
 	"os"
 	"bufio"
+	"strings"
 	TDALista "lista"
 )
 
-type ErrorOmicion struct{
-}
-
-func (err *ErrorOmicion) Error() string{
-	return "ERROR: elemento invalido, pero se puede ignorar"
-}
-
-type ErrorMissMatchSizeOut struct{
-}
-
-func (err *ErrorMissMatchSizeOut) Error() string{
-	return "ERROR: Habia mas lineas en el archivo out que en el in. Se ignoraron las sobrantes"
-}
-
-
-type ErrorMissMatchSizeIn struct{
-}
-
-func (err *ErrorMissMatchSizeIn) Error() string{
-	return "ERROR: Habia mas lineas en el archivo in que en el out. Se ignoraron las sobrantes"
-}
 
 func LeerArchivo(url string,haceAlgo func([]byte) bool) error{
 	archivo,error := os.Open(url)
@@ -89,8 +69,12 @@ func CrearArregloDeArchivo[T any](url string , convertidor func([]byte) (T,error
 
 
 // devuelve un arreglo de ints, para testeo
-func popularDNISBasico() []int{
-	return []int{1,2,3,4,5,6,7,8,9,10}
+func popularVotantesBasico(opciones int) []Votante{
+	votantes := make([]Votante,9)
+	for i:= range votantes{
+		votantes[i] = crearVotante(i,opciones)
+	}
+	return votantes
 }
 
 
@@ -105,8 +89,8 @@ func popularCandidatosBasico() [][]candidatoStruct{
 
 
 // devuelve un arreglo int dado archivo de los dnis
-func popularDNIS(archivo string) []int{
-	return popularDNISBasico()
+func popularVotantes(archivo string,opciones int) []Votante{
+	return popularVotantesBasico(opciones)
 }
 
 
@@ -117,15 +101,38 @@ func popularCandidatos(archivo string) [][]candidatoStruct{
 	return popularCandidatosBasico()
 }
 
-// Busqueda binaria deberia hacerse como se observa devuelve false si no esta y true si lo esta 
-func Contiene(lista_dni []int,dni int) bool { 
-	for _,dni_comp := range lista_dni{
-		if(dni_comp == dni){
-			return true
-		}
+
+
+func AccionDesdeComando(sesion SesionVotar,comando string) error{	
+	if(comando == "fin-votar"){
+		return sesion.SiguienteVotante()
+	} else if(comando == "deshacer"){
+		return sesion.Deshacer()
 	}
 
-	return false
+	args := strings.Split(comando," ")
+
+	if(args[0] == "ingresar"){
+
+		if(len(args) < 2){ // yo pondria != pero el error es solo en falta
+			return new(ErrorFaltanParametros)
+		}
+
+		return sesion.IngresarVotante(args[1])
+
+	}
+
+	if(args[0] == "votar"){
+
+		if(len(args) < 3){
+			return new(ErrorFaltanParametros)
+		}
+
+		return sesion.Votar(args[1],args[2])
+	}
+	
+	return new(ErrorComandoInvalido)
+
 }
 
 
@@ -145,3 +152,8 @@ func MostrarEstado(sesion SesionVotar,identificadores []string){
 	fmt.Printf("\n\n Votos Impugnados: %d",sesion.VotosImpugnados())
 
 }
+
+
+
+
+
