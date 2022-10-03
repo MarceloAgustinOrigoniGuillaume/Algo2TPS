@@ -70,9 +70,9 @@ func CrearArregloDeArchivo[T any](url string , convertidor func([]byte) (T,error
 
 // devuelve un arreglo de ints, para testeo
 func popularVotantesBasico(opciones int) []Votante{
-	votantes := make([]Votante,9)
-	for i:= range votantes{
-		votantes[i] = crearVotante(i,opciones)
+	votantes := make([]Votante,10)
+	for i:= 1 ;i<11;i++{
+		votantes[i-1] = crearVotante(i,opciones)
 	}
 	return votantes
 }
@@ -133,6 +133,15 @@ func AccionDesdeComando(sesion SesionVotar,comando string) error{
 	
 	return new(ErrorComandoInvalido)
 
+}
+
+func AccionComandoAString(sesion SesionVotar,comando string) string{
+	err:= AccionDesdeComando(sesion,comando)
+	res:= OK
+	if(err != nil){
+		res = err.Error()
+	}
+	return res
 }
 
 
