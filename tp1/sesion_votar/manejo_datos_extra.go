@@ -8,6 +8,36 @@ import (
 )
 
 
+func LeerArchivos(url string,url2 string,haceAlgo func([]byte,[]byte) bool) error{
+	archivo,err := os.Open(url)
+	if(err != nil){
+		return err
+	}
+	defer archivo.Close()
+
+	archivo2,error2 := os.Open(url2)
+	if(error2 != nil){
+		return error2
+	}
+
+	defer archivo2.Close()
+
+	scanner := bufio.NewScanner(archivo)
+	scanner2 := bufio.NewScanner(archivo2)
+
+	for scanner.Scan() && scanner2.Scan() && haceAlgo(scanner.Bytes(),scanner2.Bytes()){
+	}
+
+	err= scanner.Err()
+	if(err == nil){
+		err = scanner2.Err()
+	}
+
+	return err
+}
+
+
+
 func LeerArchivo(url string,haceAlgo func([]byte) bool) error{
 	archivo,error := os.Open(url)
 	if(error != nil){
