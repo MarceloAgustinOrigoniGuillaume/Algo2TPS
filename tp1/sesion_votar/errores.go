@@ -7,16 +7,36 @@ const OK = "OK"
 const ERROR_COMANDO_INVALIDO = "Comando invalido"
 const ERROR_FALTAN_PARAMETROS = "ERROR: Faltan parametros"
 const ERROR_DNI_INVALIDO = "ERROR: DNI incorrecto"
-const ERROR_DNI_NO_ESTA = "ERROR: DNI fuera del padron"
-const ERROR_FILA_VACIA = "ERROR: Fila vacia"
-const ERROR_TIPO_INVALIDO = "ERROR: Tipo de voto invalido"
-const ERROR_ALTERNATIVA_INVALIDA = "ERROR: Alternativa invalida"
+const ERROR_DNI_NO_ESTA = "ERROR: DNI fuera del padrón"
+const ERROR_FILA_VACIA = "ERROR: Fila vacía"
+const ERROR_TIPO_INVALIDO = "ERROR: Tipo de voto inválido"
+const ERROR_ALTERNATIVA_INVALIDA = "ERROR: Alternativa inválida"
 const ERROR_VOTANTE_FRAUDULENTO = "ERROR: Votante FRAUDULENTO: %d"
 const ERROR_SIN_VOTO_DESHACER = "ERROR: Sin voto a deshacer"
 const ERROR_SIN_TERMINAR = "ERROR: Ciudadanos sin terminar de votar"
+const ERROR_LECTURA_ARCHIVOS = "ERROR: Lectura de archivos"
 
 
 // errores main
+
+
+type ErrorTest struct{
+	comando string
+	got string
+	expected string
+}
+
+func (err *ErrorTest) Error() string{
+	return fmt.Sprintf("'%s' expected result '%s' got '%s'",err.comando,err.expected,err.got)
+}
+
+func CrearErrorTest(comando string, expected string,res string) error{
+	err:= new(ErrorTest)
+	err.comando = comando
+	err.expected = expected
+	err.got = res
+	return err
+}
 
 type ErrorComandoInvalido struct{}
 
@@ -32,6 +52,13 @@ func (err *ErrorFaltanParametros) Error() string{
 
 
 // errores manejo archivos
+type ErrorLecturaArchivos struct{} // probablemente no existian o no habia permisos
+
+func (err *ErrorLecturaArchivos) Error() string{
+	return ERROR_LECTURA_ARCHIVOS
+}
+
+
 type ErrorOmicion struct{}
 
 func (err *ErrorOmicion) Error() string{

@@ -34,7 +34,9 @@ func (registro *registroVotos) Borrar() error {
 
 
 func (registro *registroVotos) Agregar(nuevo func()){
-	registro.votosRegistrados.Apilar(nuevo)
+	if(nuevo != nil){
+		registro.votosRegistrados.Apilar(nuevo)
+	}
 }
 
 func (registro *registroVotos) Vaciar(){
