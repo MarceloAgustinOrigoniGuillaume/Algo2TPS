@@ -12,7 +12,8 @@ var TIPOS_VOTOS []string
 func ejecutarComandosSucesion( sesion TDASesion.SesionVotar,comandos []string){
 	for _,comando := range comandos{
 		fmt.Printf("\n%s",comando)
-		fmt.Printf("\n%s",sesion.AccionDesdeComando(comando))
+		
+		fmt.Printf("\n%s",TDASesion.AccionComandoAString(sesion,comando))
 	}
 }
 
@@ -71,8 +72,8 @@ func main(){
 
 	res:= sesion.Finalizar()
 
-	if(res != TDASesion.OK){
-		fmt.Printf("\n"+res)
+	if(res != nil){
+		fmt.Printf("\n"+res.Error())
 	}
 
 	TDASesion.MostrarEstado(sesion,TIPOS_VOTOS)
