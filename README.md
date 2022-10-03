@@ -19,10 +19,4 @@ Tp1
 
 // Agregar mas tests como estan en archivos/set1 y agregarlos a la funcion de test de archivos( el ultimo test)
 
-// Agregar los tests de la catedra, y hacer la funcion correspondiente en sesion_votar_tests
-
-// Problemas de refactorizacion.....
-// Corregir errores en valores expected en sesion_votar_test.go, si no se voto para todo cargo es voto en blanco
-// no hay voto en blanco parcial al parecer... igual mejor verificar con los tests de la catedra.
-
-=======
+// Testear los tests de la catedra
