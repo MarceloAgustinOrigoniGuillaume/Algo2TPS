@@ -1,7 +1,6 @@
 # Repositorio para hacer control de version de los trabajos practicos grupales de Algoritmos y Programacion 2
 
 
-
 Tp1
 
 // TO DO , CAMBIOS A HACER // Haces los que puedas/quieras
@@ -26,3 +25,4 @@ Tp1
 // Corregir errores en valores expected en sesion_votar_test.go, si no se voto para todo cargo es voto en blanco
 // no hay voto en blanco parcial al parecer... igual mejor verificar con los tests de la catedra.
 
+=======
