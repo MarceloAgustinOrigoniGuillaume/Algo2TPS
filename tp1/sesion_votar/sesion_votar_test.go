@@ -138,7 +138,40 @@ func testDesdeArchivosRequire(t *testing.T,candidatos_url string,padrones_url st
 		return
 	}
 
+	testearComandosSucesionRequire(t,sesion, testPairs)
+
+	//sesion.Finalizar()
+}
+
+func testDesdeArchivosRequireLog(t *testing.T,candidatos_url string,padrones_url string,input_file string,out_put_file string){
+	sesion := TDASesion.CrearSesion([]string{"Presidente","Gobernador","Intendente"},candidatos_url,padrones_url)
+	
+	testPairs, error := pairsDesdeArchivos(input_file,out_put_file)
+
+	if(error != nil){
+		t.Log(error)
+		return
+	}
+
 	testearComandosSucesionRequireLog(t,sesion, testPairs)
+
+	//sesion.Finalizar()
+}
+
+
+func testDesdeArchivosStreamRequire(t *testing.T,candidatos_url string,padrones_url string,input_file string,out_put_file string){
+	sesion := TDASesion.CrearSesion([]string{"Presidente","Gobernador","Intendente"},candidatos_url,padrones_url)
+	
+	err := TDASesion.LeerArchivos(input_file,out_put_file, 
+		func (linea_in []byte,linea_out []byte) bool {
+			testearPairRequire(t,sesion,TestPair{string(linea_in),string(linea_out)})
+			return true
+		})
+
+	if(err != nil){
+		t.Log(err)
+		return
+	}
 
 	//sesion.Finalizar()
 }
@@ -382,5 +415,6 @@ func TestsFuncionales(t *testing.T){
 
 
 func TestDesdeArchivos(t *testing.T){
-	testDesdeArchivosRequire(t,"../archivos/set1/listas","../archivos/set1/padrones","../archivos/set1/in","../archivos/set1/out")
+	testDesdeArchivosRequireLog(t,"../archivos/set1/listas","../archivos/set1/padrones","../archivos/set1/in","../archivos/set1/out")
+	testDesdeArchivosStreamRequire(t,"../archivos/set1/listas","../archivos/set1/padrones","../archivos/set1/in","../archivos/set1/out")
 }
