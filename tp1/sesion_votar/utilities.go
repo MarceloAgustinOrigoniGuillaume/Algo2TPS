@@ -4,7 +4,6 @@ import (
 	"os"
 	"bufio"
 	"strings"
-	"strconv"
 	TDALista "lista"
 )
 
@@ -34,20 +33,25 @@ func IterarScanners(scanner *bufio.Scanner,scanner2 *bufio.Scanner,haceAlgo func
 	}
 
 	return err
+}
 
+// Por si se mueven los tests.
+func ParseameUrl(url string) string{
+	url = strings.Replace(url,":a/","archivos/",1)
+
+	return strings.Replace(url,":c/","archivos/catedra/",1)
 
 }
 
 
-
 func LeerArchivos(url string,url2 string,haceAlgo func([]byte,[]byte) bool) error{
-	archivo,err := os.Open(url)
+	archivo,err := os.Open(ParseameUrl(url))
 	if(err != nil){
 		return err
 	}
 	defer archivo.Close()
 
-	archivo2,error2 := os.Open(url2)
+	archivo2,error2 := os.Open(ParseameUrl(url2))
 	if(error2 != nil){
 		return error2
 	}
@@ -57,10 +61,8 @@ func LeerArchivos(url string,url2 string,haceAlgo func([]byte,[]byte) bool) erro
 	return IterarScanners(bufio.NewScanner(archivo),bufio.NewScanner(archivo2),haceAlgo)
 }
 
-
-
 func LeerArchivo(url string,haceAlgo func([]byte) bool) error{
-	archivo,error := os.Open(url)
+	archivo,error := os.Open(ParseameUrl(url))
 	if(error != nil){
 		return error
 	}
@@ -74,6 +76,7 @@ func LeerArchivo(url string,haceAlgo func([]byte) bool) error{
 
 	return scanner.Err()
 }
+
 
 func CrearArregloDeArchivo[T any](url string , insert func(TDALista.Lista[T],[]byte) error) ([]T,error){
 	listaAux:= TDALista.CrearListaEnlazada[T]()
@@ -103,8 +106,7 @@ func CrearArregloDeArchivo[T any](url string , insert func(TDALista.Lista[T],[]b
 	return res,nil
 }
 
-
-func particion(arr []Votante, inicio int, final int) ([]Votante, int) {
+func ordenar(arr []Votante, inicio int, final int) ([]Votante, int) {
 	pivot := arr[final]
 	i := inicio
 	for j := inicio; j < final; j++ {
@@ -117,52 +119,18 @@ func particion(arr []Votante, inicio int, final int) ([]Votante, int) {
 	return arr, i
 }
 
-func quickSort(arr []Votante, low, high int) []Votante {
+func QuickSort(arr []Votante, low, high int) []Votante {
 	if low < high {
 		var p int
-		arr, p = particion(arr, low, high)
-		arr = quickSort(arr, low, p-1)
-		arr = quickSort(arr, p+1, high)
+		arr, p = ordenar(arr, low, high)
+		arr = QuickSort(arr, low, p-1)
+		arr = QuickSort(arr, p+1, high)
 	}
 	return arr
 }
 
-func ordenar(lista_dni []Votante,dni int) int { 
-	inicio := 0
-	fin := len(lista_dni)
-	medio := (fin+inicio)/2
-
-
-	for medio != inicio && lista_dni[inicio].DNI()<dni && lista_dni[fin-1].DNI()>dni{
-		if(lista_dni[medio].DNI() == dni){
-			fmt.Printf("\n-> dni invalido, repetido")
-			return -1 // No se permite repetidos
-		}
-
-		if(lista_dni[medio].DNI() > dni){
-			fin = medio
-		} else{
-			inicio = medio+1
-		}
-
-		medio = (fin+inicio)/2
-	} 
-	
-	if(lista_dni[inicio].DNI()> dni){
-		return inicio
-	} 
-
-	if(lista_dni[fin-1].DNI() < dni){
-		return fin
-	} 
-
-	fmt.Printf("\n-> dni invalido?? min %d, max %d, elem %d",lista_dni[inicio].DNI() ,lista_dni[fin-1].DNI(),dni)
-	return -1
-}
-
-
-func redimensionarSlice(viejo []Votante,nuevo_largo int )[]Votante{
-	nuevo := make([]Votante,nuevo_largo)
+func RedimensionarSlice[T any](viejo []T,nuevo_largo int )[]T{
+	nuevo := make([]T,nuevo_largo)
 
 	copy(nuevo,viejo)
 
@@ -182,7 +150,6 @@ func popularVotantesBasico(opciones int) []Votante{
 	return votantes
 }
 
-
 // devuelve un arreglo de candidatos, para testeo
 func popularCandidatosBasico(tipos int) [][]candidatoStruct{
 	candidatos := make([][]candidatoStruct,tipos)
@@ -199,107 +166,6 @@ func popularCandidatosBasico(tipos int) [][]candidatoStruct{
 
 	return candidatos
 }
-
-
-// devuelve un arreglo de Votantes dado archivo de los dnis
-// Estaran ordenados por dni de menor a mayor
-func popularVotantes(archivo string,opciones int) ([]Votante,error){
-	auxSlice:= make([]Votante,128)
-	i:= 0
-	errArchivo := LeerArchivo(archivo,func (datos []byte) bool{
-			dni,err := strconv.Atoi(string(datos))
-			if(err != nil){
-				return true
-			}
-
-			if(i == len(auxSlice)){
-				auxSlice= redimensionarSlice(auxSlice,2*len(auxSlice))
-			}
-			auxSlice[i] = CrearVotante(dni,opciones)
-			i++
-			// mientras vaya despues, ie el actual sea menor, itera
-
-			//fmt.Printf("\n-> nuevo dni .... len = %d, cap = %d",i,len(auxSlice))
-		return err == nil
-	})
-
-	if(errArchivo != nil){
-		return make([]Votante,0),errArchivo
-	}
-
-	if(i != len(auxSlice)){
-		auxSlice= redimensionarSlice(auxSlice,i)
-	}
-
-
-
-	return quickSort(auxSlice,0,i-1),nil
-}
-
-func popularVotantes2(archivo string,opciones int) ([]Votante,error){
-
-	return CrearArregloDeArchivo(archivo,func (lista TDALista.Lista[Votante],bytes []byte) error{
-				iterador := lista.Iterador()
-				dni,error := strconv.Atoi(string(bytes))
-				if(error != nil){
-					return nil
-				}
-				votante := CrearVotante(dni,opciones)
-				// mientras vaya despues, ie el actual sea menor, itera
-				for iterador.HaySiguiente() && iterador.VerActual().DNI() < votante.DNI(){ 
-					iterador.Siguiente()
-				}
-
-				iterador.Insertar(votante)
-
-
-				fmt.Printf("\n-> nuevo dni .... len = %d",lista.Largo())
-				return nil
-			})
-	//return popularVotantesBasico(opciones)
-}
-
-
-
-
-// devuelve una lista dada la cantidad de tipos de votos y un archivo de los candidatos
-func popularCandidatos(archivo string,tipos int) ([][]candidatoStruct,error){
-	candidatos := make([][]candidatoStruct,tipos)
-	cant:= 4
-	errArchivo := LeerArchivo(archivo,func (datos []byte) bool{
-		cant = len(strings.Split(string(datos),","))//-1
-		return false
-	})
-
-	for i:= range candidatos{
-		candidatos[i] = make([]candidatoStruct,cant)
-		candidatos[i][0] = candidatoStruct{}
-		for j:=1;j<len(candidatos[i]);j++{
-			candidatos[i][j] = CrearCandidato(fmt.Sprintf("partido %d",j),fmt.Sprintf("tip %d: %d",i,j))
-		}
-	}
-
-
-	return candidatos,errArchivo
-	
-	/*
-	return CrearArregloDeArchivo(archivo,func (lista TDALista.Lista[[]candidatoStruct],bytes []byte) error{
-				lista.InsertarUltimo(
-					[]candidatoStruct {candidatoStruct{},
-					CrearCandidato("1","Pre 1"),
-					CrearCandidato("2","Pre 2"),
-					CrearCandidato("3","Pre 3")})
-
-				//fmt.Printf("\nSE AGREGO? %d",lista.Largo())
-				if(len(lista.VerUltimo()) != tipos){
-					return new(ErrorLecturaArchivos)
-				}
-				return nil
-			})
-
-	*/
-}
-
 
 
 func AccionDesdeComando(sesion SesionVotar,comando string) error{	
@@ -387,13 +253,13 @@ func TestearComandosScanners(sesion SesionVotar,input_scanner *bufio.Scanner,out
 }
 
 func TestearComandosArchivos(sesion SesionVotar,input_file string, out_put_file string) error{
-	in,err := os.Open(input_file)
+	in,err := os.Open(ParseameUrl(input_file))
 	if(err != nil){
 		return err
 	}
 	defer in.Close()
 
-	expectedOut,error2 := os.Open(out_put_file)
+	expectedOut,error2 := os.Open(ParseameUrl(out_put_file))
 	if(error2 != nil){
 		return error2
 	}

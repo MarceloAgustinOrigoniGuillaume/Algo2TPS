@@ -8,7 +8,7 @@ import(
 	"fmt"
 	"os"
 )
-
+os.
 func crearSesionBasica() TDASesion.SesionVotar{
 	sesion,_:= TDASesion.CrearSesion([]string{"Presidente","Gobernador","Intendente"},
 						 TDASesion.BASIC_SAMPLE, TDASesion.BASIC_SAMPLE)
@@ -370,7 +370,6 @@ func TestDeshacer(t *testing.T){
 
 
 
-// Fraudes y otras verificaciones de respuestas
 func TestFraudulentos(t *testing.T){
 	sesion := crearSesionBasica()
 
@@ -394,8 +393,8 @@ func TestFraudulentos(t *testing.T){
 
 func TestDesdeArchivos(t *testing.T){
 	t.Log("Se verificara que se pueda cargar el sistema desde archivos")
-	testDesdeArchivosRequire(t,"../archivos/set1/candidatos","../archivos/set1/padrones","../archivos/set1/in","../archivos/set1/out")
-	err:= testDesdeArchivosStreamRequire(t,"../archivos/set1/candidatos","../archivos/set1/padrones","../archivos/set1/in","../archivos/set1/out")
+	testDesdeArchivosRequire(t,"../archivos/set1/partidos","../archivos/set1/padron","../archivos/set1/in","../archivos/set1/out")
+	err:= testDesdeArchivosStreamRequire(t,"../archivos/set1/partidos","../archivos/set1/padron","../archivos/set1/in","../archivos/set1/out")
 
 	if(err != nil){
 		t.Log(err.Error())
@@ -404,7 +403,7 @@ func TestDesdeArchivos(t *testing.T){
 
 
 func getUrlBaseCatedra(num_test int) string{
-	return fmt.Sprintf("../archivos/catedra/%02d",num_test)
+	return fmt.Sprintf("../:c/%02d",num_test)
 }
 
 func TestCatedra(t *testing.T){
@@ -412,12 +411,12 @@ func TestCatedra(t *testing.T){
 
 	for i:= 1;i<11;i++{
 		url := getUrlBaseCatedra(i)
-		archivo,err := os.Open(url+".test")
+		archivo,err := os.Open(TDASesion.ParseameUrl(url+".test"))
 		if(err != nil){
 			t.Log(err.Error())
 			continue
 		}
-		t.Log("-----------------"+TDASesion.ReadAll(archivo)+"\n")
+		t.Log(fmt.Sprintf("test:%d -----%s\n",i,TDASesion.ReadAll(archivo)))
 		archivo.Close()
 
 
