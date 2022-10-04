@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"os"
 	"bufio"
+	"time"
 )
 
 const ERROR_ARGUMENTOS = "Insuficientes argumentos"
@@ -16,6 +17,28 @@ func ejecutarComandosSucesion( sesion TDASesion.SesionVotar,comandos []string){
 	}
 }
 
+func test(partidos, padron, in, out string){
+	fmt.Fprintf(os.Stdout,"test %s , %s \n",partidos,padron)
+	start:= time.Now()
+	defer fmt.Fprintf(os.Stdout,"\ntook %s",time.Since(start))
+
+	sesion,err := TDASesion.CrearSesion([]string{"Presidente","Gobernador","Intendente"},partidos,padron)
+
+	if(err != nil){
+		fmt.Fprintf(os.Stdout,err.Error())
+		return
+	}
+
+	fmt.Fprintf(os.Stdout,"in: %s , expected : %s \n",in,out)
+	err = TDASesion.TestearComandosArchivos(sesion,in,out)
+	res:= "TODO OK"
+	if(err != nil){
+		res = err.Error()
+	}
+
+	fmt.Fprintf(os.Stdout,res)
+}
+
 
 func main(){
 
@@ -25,26 +48,21 @@ func main(){
 	}
 
 	TIPOS_VOTOS := []string{"Presidente","Gobernador","Intendente"}
-
-	//fmt.Fprintf(os.Stdout,"SESION VOTAR INITED")
+	
+	// dios me perdone pero quise hacerlo para hacer mejor uso desde consola
+	// funcionalidad extra para testear desde consola si se quiere
+	if(os.Args[1] == "-test:" && len(os.Args) == 3){ 
+		test(os.Args[2]+"_partidos",os.Args[2]+"_padron",os.Args[2]+"_in",os.Args[2]+"_out")
+		return
+	} else if(len(os.Args)== 5){
+		test(os.Args[1],os.Args[2],os.Args[3],os.Args[4])
+		return
+	}
 
 	sesion,err := TDASesion.CrearSesion(TIPOS_VOTOS,os.Args[1],os.Args[2])
 
 	if(err != nil){
 		fmt.Fprintf(os.Stdout,err.Error())
-		return
-	}
-
-	if(len(os.Args)== 5){ // funcionalidad extra para testear desde consola si se quiere
-		fmt.Fprintf(os.Stdout,"Test->in: %s , expected : %s \n",os.Args[3],os.Args[4])
-		err:= TDASesion.TestearComandosArchivos(sesion,os.Args[3],os.Args[4])
-		
-		res:= "TODO OK"
-		if(err != nil){
-			res = err.Error()
-		}
-
-		fmt.Fprintf(os.Stdout,res)
 		return
 	}
 
@@ -68,24 +86,4 @@ func main(){
 	}
 
 	TDASesion.MostrarEstado(sesion,TIPOS_VOTOS)
-
-	/*
-
-	// Hard coded commands
-	ejecutarComandosSucesion(sesion, []string{"ingresar 1","votar Presidente 2","votar Presidente 3",
-												"deshacer","votar Gobernador 3","ingresar 35","ingresar -3","fin-votar"})
-
-
-	ejecutarComandosSucesion(sesion, []string{"ingresar 1","ingresar 2","votar Presidente 2","votar Presidente 3",
-												"deshacer","votar Gobernador 3","ingresar 35","fin-votar"})
-
-
-	ejecutarComandosSucesion(sesion,[]string{"ingresar 1","fin-votar"})
-	ejecutarComandosSucesion(sesion,[]string{"ingresar 1","deshacer"})
-
-	
-
-	
-
-	*/
 }
