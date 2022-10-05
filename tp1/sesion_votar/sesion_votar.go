@@ -238,7 +238,7 @@ func (sesion *sesionVotar) Deshacer() error{
 		return CrearErrorFraude(sesion.esperandoAVotar.Desencolar().DNI())
 	}
 
-	return sesion.registroDeVotos.Borrar()
+	return sesion.registroDeVotos.BorrarUltimo()
 }
 
 func (sesion *sesionVotar) SiguienteVotante() error {
