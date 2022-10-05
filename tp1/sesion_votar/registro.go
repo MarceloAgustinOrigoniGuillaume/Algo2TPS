@@ -5,8 +5,11 @@ import TDAPila "pila"
 
 
 type Registro interface{
-	Borrar() error
+	//Borra la ultima funcion en el registro y la aplica
+	BorrarUltimo() error
+	//Agrega una funcion al registro
 	Agregar(func())
+	//Vacia el registro
 	Vaciar()
 }
 
@@ -22,7 +25,7 @@ func CrearRegistroDeVotos() Registro{
 }
 
 
-func (registro *registroVotos) Borrar() error {
+func (registro *registroVotos) BorrarUltimo() error {
 
 	if(registro.votosRegistrados.EstaVacia()){
 		return new(ErrorSinRegistro)
