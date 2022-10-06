@@ -1,5 +1,5 @@
 ERROR: DNI fuera del padrón
-ERROR: DNI fuera del padrón
+OK
 OK
 OK
 OK
@@ -8,22 +8,29 @@ OK
 ERROR: DNI fuera del padrón
 ERROR: DNI incorrecto
 OK
+ERROR: Ciudadanos sin terminar de votar
 Presidente:
 Votos en Blanco: 0 votos
-Partido 1 - Persona B1: 0 votos
-Partido 2 - Amigo A1: 1 voto
-Partido 3 - Otro1: 0 votos
+partido1 - pre: 0 votos
+partido2 - pre2: 1 voto
+partido3 - pre3: 0 votos
+partido4 - pre4: 0 votos
+partido5 - pre5: 0 votos
 
 Gobernador:
 Votos en Blanco: 0 votos
-Partido 1 - Persona B2: 0 votos
-Partido 2 - Amigo A2: 0 votos
-Partido 3 - Otro2: 1 voto
+partido1 - gob: 0 votos
+partido2 - gob2: 0 votos
+partido3 - gob3: 1 voto
+partido4 - gob4: 0 votos
+partido5 - gob5: 0 votos
 
 Intendente:
 Votos en Blanco: 1 voto
-Partido 1 - Persona B3: 0 votos
-Partido 2 - Amigo A3: 0 votos
-Partido 3 - Otro3: 0 votos
+partido1 - int: 0 votos
+partido2 - int2: 0 votos
+partido3 - int3: 0 votos
+partido4 - int4: 0 votos
+partido5 - int5: 0 votos
 
 Votos Impugnados: 0 votos

@@ -312,7 +312,7 @@ func TestFinalResult(sesion SesionVotar, identificadores []string, outScanner *b
 			errTest = CrearErrorTest("Resultado", outScanner.Text(), linea)
 		}
 
-		return true
+		return errTest == nil
 	})
 
 	return errTest
