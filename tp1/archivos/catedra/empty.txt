@@ -1,0 +1,3 @@
+/usr/bin/bash
+/home/manjaro/Documents/tp1/archivos/catedra/pruebas.sh
+/home/manjaro/Documents/tp1/rerepolez
