@@ -56,12 +56,7 @@ func main() {
 	inputUsuario := bufio.NewScanner(os.Stdin)
 
 	for inputUsuario.Scan() {
-		comando := inputUsuario.Text()
-		if comando == "" { // esto es para cuando se hace por consola, un indicador que se termino
-			break
-		}
-
-		fmt.Fprintf(os.Stdout, "%s\n", TDASesion.AccionComandoAString(sesion, comando))
+		fmt.Fprintf(os.Stdout, "%s\n", TDASesion.AccionComandoAString(sesion, inputUsuario.Text()))
 	}
 
 	res := sesion.Finalizar()
