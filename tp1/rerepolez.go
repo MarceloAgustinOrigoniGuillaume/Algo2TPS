@@ -29,7 +29,7 @@ func test(partidos, padron, in, out string) {
 func main() {
 
 	if len(os.Args) < 3 {
-		fmt.Fprintf(os.Stdout, ERROR_ARGUMENTOS)
+		fmt.Fprintf(os.Stdout, ERROR_ARGUMENTOS+"\n")
 		return
 	}
 
@@ -49,7 +49,7 @@ func main() {
 	sesion, err := TDASesion.CrearSesion(TIPOS_VOTOS, os.Args[1], os.Args[2])
 
 	if err != nil {
-		fmt.Fprintf(os.Stdout, err.Error())
+		fmt.Fprintf(os.Stdout, err.Error()+"\n")
 		return
 	}
 
