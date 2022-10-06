@@ -5,14 +5,16 @@ import (
 	"fmt"
 	TDALista "lista"
 	"os"
+	"sesion_votar/errores"
+	TDAVotante "sesion_votar/votante"
 	"strings"
 )
 
 // devuelve un arreglo de ints, para testeo
-func popularVotantesBasico(opciones int) []Votante {
-	votantes := make([]Votante, 10)
+func popularVotantesBasico(opciones int) []TDAVotante.Votante {
+	votantes := make([]TDAVotante.Votante, 10)
 	for i := 1; i < 11; i++ {
-		votantes[i-1] = CrearVotante(i, opciones)
+		votantes[i-1] = TDAVotante.CrearVotante(i, opciones)
 	}
 	return votantes
 }
@@ -134,7 +136,7 @@ func CrearArregloDeArchivo[T any](url string, insert func(TDALista.Lista[T], []b
 	return res, nil
 }
 
-func ordenar(arr []Votante, inicio int, final int) ([]Votante, int) {
+func ordenar(arr []TDAVotante.Votante, inicio int, final int) ([]TDAVotante.Votante, int) {
 	pivot := arr[final]
 	i := inicio
 	for j := inicio; j < final; j++ {
@@ -147,7 +149,7 @@ func ordenar(arr []Votante, inicio int, final int) ([]Votante, int) {
 	return arr, i
 }
 
-func QuickSort(arr []Votante, low, high int) []Votante {
+func QuickSort(arr []TDAVotante.Votante, low, high int) []TDAVotante.Votante {
 	if low < high {
 		var p int
 		arr, p = ordenar(arr, low, high)
@@ -177,7 +179,7 @@ func AccionDesdeComando(sesion SesionVotar, comando string) error {
 	if args[0] == "ingresar" {
 
 		if len(args) < 2 { // yo pondria != pero el error es solo en falta de
-			return new(ErrorFaltanParametros)
+			return new(errores.ErrorFaltanParametros)
 		}
 
 		return sesion.IngresarVotante(args[1])
@@ -187,19 +189,19 @@ func AccionDesdeComando(sesion SesionVotar, comando string) error {
 	if args[0] == "votar" {
 
 		if len(args) < 3 {
-			return new(ErrorFaltanParametros)
+			return new(errores.ErrorFaltanParametros)
 		}
 
 		return sesion.Votar(args[1], args[2])
 	}
 
-	return new(ErrorComandoInvalido)
+	return new(errores.ErrorComandoInvalido)
 
 }
 
 func AccionComandoAString(sesion SesionVotar, comando string) string {
 	err := AccionDesdeComando(sesion, comando)
-	res := OK
+	res := errores.OK
 	if err != nil {
 		res = err.Error()
 	}
@@ -252,7 +254,7 @@ func MostrarEstado(sesion SesionVotar, identificadores []string, mostrarLinea fu
 func TestearComando(sesion SesionVotar, comando string, expected string) error {
 	res := AccionComandoAString(sesion, comando)
 	if res != expected {
-		return CrearErrorTest(comando, expected, res)
+		return errores.CrearErrorTest(comando, expected, res)
 	}
 
 	return nil
@@ -300,16 +302,16 @@ func TestFinalResult(sesion SesionVotar, identificadores []string, outScanner *b
 		}
 
 		if errTest.Error() != outScanner.Text() {
-			return CrearErrorTest("Resultado", outScanner.Text(), errTest.Error())
+			return errores.CrearErrorTest("Resultado", outScanner.Text(), errTest.Error())
 		}
 		errTest = nil
 	}
 
 	MostrarEstado(sesion, identificadores, func(linea string) bool {
 		if !outScanner.Scan() {
-			errTest = CrearErrorTest("Resultado", "EOF", linea)
+			errTest = errores.CrearErrorTest("Resultado", "EOF", linea)
 		} else if outScanner.Text() != linea {
-			errTest = CrearErrorTest("Resultado", outScanner.Text(), linea)
+			errTest = errores.CrearErrorTest("Resultado", outScanner.Text(), linea)
 		}
 
 		return errTest == nil

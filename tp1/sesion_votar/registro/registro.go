@@ -1,7 +1,7 @@
-package sesion_votar
+package registro
 
 import TDAPila "pila"
-
+import "sesion_votar/errores"
 type Registro interface {
 
 	//Borra la ultima accion en el registro, accionandola en el proceso
@@ -27,7 +27,7 @@ func CrearRegistroDeVotos() Registro {
 func (registro *registroVotos) BorrarUltimo() error {
 
 	if registro.votosRegistrados.EstaVacia() {
-		return new(ErrorSinRegistro)
+		return new(errores.ErrorSinRegistro)
 	}
 
 	registro.votosRegistrados.Desapilar()()

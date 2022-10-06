@@ -1,4 +1,6 @@
-package sesion_votar
+package votante
+
+import "sesion_votar/errores"
 
 // Se pone la interfaz en el mismo archivo por que idealmente solo existira una implementacion
 // Pero no se quiere permitir usar la struct directamente
@@ -72,7 +74,7 @@ func (votante *votanteStruct) CambiameElVoto(tipo int, candidato int) func() {
 
 func (votante *votanteStruct) FinalizarVoto() error {
 	if votante.yaVoto {
-		return CrearErrorFraude(votante.dni)
+		return errores.CrearErrorFraude(votante.dni)
 	}
 	votante.yaVoto = true
 

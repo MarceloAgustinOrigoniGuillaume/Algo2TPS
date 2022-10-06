@@ -365,8 +365,6 @@ func TestCatedra(t *testing.T) {
 
 	for i := 2; i < 11; i++ {
 
-		
-
 		url := getUrlBaseCatedra(i)
 		archivo, errOpen := os.Open(TDASesion.ParseameUrl(url + ".test"))
 		if errOpen != nil {
@@ -378,9 +376,9 @@ func TestCatedra(t *testing.T) {
 		err = testDesdeArchivosStreamRequire(t, url+"_partidos", url+"_padron", url+"_in", url+"_out")
 
 		if err == nil {
-			t.Log(fmt.Sprintf("test %d-> PASS",i))
+			t.Log(fmt.Sprintf("test %d-> PASS", i))
 		} else {
-			t.Log(fmt.Sprintf("test %d-> IGNORADO: %s",i,err.Error()))
+			t.Log(fmt.Sprintf("test %d-> IGNORADO: %s", i, err.Error()))
 		}
 
 	}
