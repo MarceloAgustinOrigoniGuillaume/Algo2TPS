@@ -1,4 +1,4 @@
-package sesion_votar
+package errores
 
 import "fmt"
 
@@ -6,7 +6,7 @@ import "fmt"
 const OK = "OK"
 
 const ERROR_COMANDO_INVALIDO = "Comando invalido"
-const ERROR_FALTAN_PARAMETROS = "ERROR: Faltan parametros"
+const ERROR_FALTAN_PARAMETROS = "ERROR: Faltan parámetros"
 const ERROR_DNI_INVALIDO = "ERROR: DNI incorrecto"
 const ERROR_DNI_NO_ESTA = "ERROR: DNI fuera del padrón"
 const ERROR_FILA_VACIA = "ERROR: Fila vacía"

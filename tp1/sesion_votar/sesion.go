@@ -1,6 +1,6 @@
 package sesion_votar
 
-//Constante para testeo
+// Constante para testeo
 const BASIC_SAMPLE = ":sample:" // una url normal no tendria :
 
 // Interfaz

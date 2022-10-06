@@ -5,10 +5,9 @@ import (
 	"fmt"
 	"os"
 	TDASesion "sesion_votar"
+	errores "sesion_votar/errores"
 	"time"
 )
-
-const ERROR_ARGUMENTOS = "ERROR: Faltan parámetros"
 
 func test(partidos, padron, in, out string) {
 	fmt.Fprintf(os.Stdout, "test %s , %s \n", partidos, padron)
@@ -29,13 +28,13 @@ func test(partidos, padron, in, out string) {
 func main() {
 
 	if len(os.Args) < 3 {
-		fmt.Fprintf(os.Stdout, ERROR_ARGUMENTOS+"\n")
+		fmt.Fprintf(os.Stdout, errores.ERROR_FALTAN_PARAMETROS+"\n")
 		return
 	}
 
 	TIPOS_VOTOS := []string{"Presidente", "Gobernador", "Intendente"}
 
-	// dios este con nosotros pero quise hacerlo para hacer un uso mas facil desde consola
+	// dios este con nosotros pero se quiso hacerlo para hacer un uso mas facil desde consola
 	// para testear desde consola si se quiere
 	if os.Args[1] == "-test:" && len(os.Args) == 3 {
 		// formato de archivos de la catedra

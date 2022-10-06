@@ -3,6 +3,9 @@ package sesion_votar
 import (
 	TDACola "cola"
 	TDALista "lista"
+	"sesion_votar/errores"
+	TDARegistro "sesion_votar/registro"
+	TDAVotante "sesion_votar/votante"
 	"strconv"
 	"strings"
 )
@@ -10,9 +13,9 @@ import (
 type sesionVotar struct {
 	identificadores_tipos []string
 	listaCandidatos       [][]candidatoStruct
-	aVotar                []Votante
-	esperandoAVotar       TDACola.Cola[Votante]
-	registroDeVotos       Registro
+	aVotar                []TDAVotante.Votante
+	esperandoAVotar       TDACola.Cola[TDAVotante.Votante]
+	registroDeVotos       TDARegistro.Registro
 	votosImpugnados       int
 }
 
@@ -22,12 +25,12 @@ func CrearSesion(identificadores_tipos []string, candidatos_file string, padrone
 	sesion := new(sesionVotar)
 	sesion.identificadores_tipos = identificadores_tipos
 
-	sesion.esperandoAVotar = TDACola.CrearColaEnlazada[Votante]()
-	sesion.registroDeVotos = CrearRegistroDeVotos()
+	sesion.esperandoAVotar = TDACola.CrearColaEnlazada[TDAVotante.Votante]()
+	sesion.registroDeVotos = TDARegistro.CrearRegistroDeVotos()
 
 	// valores iniciales por si saltan errores
 	sesion.listaCandidatos = make([][]candidatoStruct, 0)
-	sesion.aVotar = make([]Votante, 0)
+	sesion.aVotar = make([]TDAVotante.Votante, 0)
 
 	err := sesion.popularCandidatos(candidatos_file)
 
@@ -36,7 +39,7 @@ func CrearSesion(identificadores_tipos []string, candidatos_file string, padrone
 	}
 
 	if err != nil {
-		err = new(ErrorLecturaArchivos)
+		err = new(errores.ErrorLecturaArchivos)
 	}
 
 	return sesion, err
@@ -52,7 +55,7 @@ func (sesion *sesionVotar) popularVotantes(archivo string, opciones int) error {
 		return nil
 	}
 
-	sesion.aVotar = make([]Votante, 1024)
+	sesion.aVotar = make([]TDAVotante.Votante, 1024)
 	i := 0
 	errArchivo := LeerArchivo(archivo, func(datos []byte) bool {
 		dni, err := strconv.Atoi(string(datos))
@@ -63,7 +66,7 @@ func (sesion *sesionVotar) popularVotantes(archivo string, opciones int) error {
 		if i == len(sesion.aVotar) {
 			sesion.aVotar = RedimensionarSlice(sesion.aVotar, 2*len(sesion.aVotar))
 		}
-		sesion.aVotar[i] = CrearVotante(dni, opciones)
+		sesion.aVotar[i] = TDAVotante.CrearVotante(dni, opciones)
 		i++
 		return err == nil
 	})
@@ -93,7 +96,7 @@ func (sesion *sesionVotar) popularCandidatos(archivo string) error {
 	candidatosArchivo, errArchivo := CrearArregloDeArchivo(archivo, func(lista TDALista.Lista[[]candidatoStruct], bytes []byte) error {
 		splitted := strings.Split(string(bytes), ",")
 		if len(splitted) < tipos+1 { // + 1 por el partido
-			return new(ErrorLecturaArchivos)
+			return new(errores.ErrorLecturaArchivos)
 		}
 
 		candidatosPartido := make([]candidatoStruct, tipos)
@@ -125,8 +128,8 @@ func (sesion *sesionVotar) popularCandidatos(archivo string) error {
 
 }
 
-//Busca binariamente, aprovechando popularVotantes.
-func buscarVotante(lista_dni []Votante, dni int) Votante {
+// Busca binariamente, aprovechando popularVotantes.
+func buscarVotante(lista_dni []TDAVotante.Votante, dni int) TDAVotante.Votante {
 
 	inicio := 0
 	fin := len(lista_dni)
@@ -177,13 +180,13 @@ func (sesion *sesionVotar) IngresarVotante(dniStr string) error {
 	dni, err := strconv.Atoi(dniStr)
 
 	if err != nil || dni < 0 {
-		return new(ErrorDNIInvalido)
+		return new(errores.ErrorDNIInvalido)
 	}
 
 	votante := buscarVotante(sesion.aVotar, dni)
 
 	if votante == nil {
-		return new(ErrorDNINoEsta)
+		return new(errores.ErrorDNINoEsta)
 	}
 	sesion.esperandoAVotar.Encolar(votante)
 	return nil
@@ -192,24 +195,24 @@ func (sesion *sesionVotar) IngresarVotante(dniStr string) error {
 func (sesion *sesionVotar) Votar(tipoStr string, candidatoStr string) error {
 
 	if sesion.esperandoAVotar.EstaVacia() {
-		return new(ErrorFilaVacia)
+		return new(errores.ErrorFilaVacia)
 	}
 	// Se prefiere a hacer los chequeos en sesion votar
 	// para ahorrar memoria, guardar la cantidad de candidatos por tipo escencialmente
 	tipo := sesion.indiceTipo(tipoStr)
 
 	if tipo == -1 {
-		return new(ErrorTipoInvalido)
+		return new(errores.ErrorTipoInvalido)
 	}
 
 	candidato, err := strconv.Atoi(candidatoStr)
 
 	if err != nil || candidato < 0 || candidato >= len(sesion.listaCandidatos) {
-		return new(ErrorAlternativaInvalida)
+		return new(errores.ErrorAlternativaInvalida)
 	}
 
 	if sesion.esperandoAVotar.VerPrimero().YaVoto() {
-		return CrearErrorFraude(sesion.esperandoAVotar.Desencolar().DNI())
+		return errores.CrearErrorFraude(sesion.esperandoAVotar.Desencolar().DNI())
 	}
 
 	// Cambio de voto
@@ -220,11 +223,11 @@ func (sesion *sesionVotar) Votar(tipoStr string, candidatoStr string) error {
 
 func (sesion *sesionVotar) Deshacer() error {
 	if sesion.esperandoAVotar.EstaVacia() {
-		return new(ErrorFilaVacia)
+		return new(errores.ErrorFilaVacia)
 	}
 
 	if sesion.esperandoAVotar.VerPrimero().YaVoto() {
-		return CrearErrorFraude(sesion.esperandoAVotar.Desencolar().DNI())
+		return errores.CrearErrorFraude(sesion.esperandoAVotar.Desencolar().DNI())
 	}
 
 	return sesion.registroDeVotos.BorrarUltimo()
@@ -233,7 +236,7 @@ func (sesion *sesionVotar) Deshacer() error {
 func (sesion *sesionVotar) SiguienteVotante() error {
 
 	if sesion.esperandoAVotar.EstaVacia() {
-		return new(ErrorFilaVacia)
+		return new(errores.ErrorFilaVacia)
 	}
 
 	sesion.registroDeVotos.Vaciar()
@@ -264,11 +267,11 @@ func (sesion *sesionVotar) Finalizar() error {
 			sesion.esperandoAVotar.Desencolar()
 		}
 
-		err = new(ErrorSinTerminar)
+		err = new(errores.ErrorSinTerminar)
 	}
 
 	// para evitar su uso a futuro una vez se finalizo
-	sesion.aVotar = make([]Votante, 0)
+	sesion.aVotar = make([]TDAVotante.Votante, 0)
 
 	return err
 }
@@ -282,7 +285,7 @@ func (sesion *sesionVotar) VotosImpugnados() int {
 func (sesion *sesionVotar) IterarVotos(identificador string, visitar func(string, int) bool) {
 	tipo := sesion.indiceTipo(identificador)
 	if tipo == -1 {
-		panic(ERROR_TIPO_INVALIDO)
+		panic(errores.ERROR_TIPO_INVALIDO)
 	}
 
 	if !visitar("Votos en Blanco", sesion.listaCandidatos[0][tipo].votantes) {
