@@ -74,4 +74,6 @@ func main() {
 		fmt.Fprintf(os.Stdout, mensaje+"\n")
 		return true
 	})
+
+	inputUsuario.Scan() // para que pause si es por consola a mano
 }

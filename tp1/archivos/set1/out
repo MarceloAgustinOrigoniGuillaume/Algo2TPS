@@ -1,5 +1,5 @@
 ERROR: DNI fuera del padrón
-OK
+ERROR: DNI fuera del padrón
 OK
 OK
 OK
@@ -8,3 +8,22 @@ OK
 ERROR: DNI fuera del padrón
 ERROR: DNI incorrecto
 OK
+Presidente:
+Votos en Blanco: 0 votos
+Partido 1 - Persona B1: 0 votos
+Partido 2 - Amigo A1: 1 voto
+Partido 3 - Otro1: 0 votos
+
+Gobernador:
+Votos en Blanco: 0 votos
+Partido 1 - Persona B2: 0 votos
+Partido 2 - Amigo A2: 0 votos
+Partido 3 - Otro2: 1 voto
+
+Intendente:
+Votos en Blanco: 1 voto
+Partido 1 - Persona B3: 0 votos
+Partido 2 - Amigo A3: 0 votos
+Partido 3 - Otro3: 0 votos
+
+Votos Impugnados: 0 votos
