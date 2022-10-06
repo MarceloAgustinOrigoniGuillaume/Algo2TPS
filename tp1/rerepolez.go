@@ -8,7 +8,7 @@ import (
 	"time"
 )
 
-const ERROR_ARGUMENTOS = "Insuficientes argumentos"
+const ERROR_ARGUMENTOS = "ERROR: Faltan parámetros"
 
 func test(partidos, padron, in, out string) {
 	fmt.Fprintf(os.Stdout, "test %s , %s \n", partidos, padron)
