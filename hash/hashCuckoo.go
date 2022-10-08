@@ -41,6 +41,8 @@ func CrearHashCuckoo[K comparable, V any]() Hash[K,V]{
 func buscarPosicionCuckoo(elementos []elementoHash, clave K) int{
 	secuencia := []func() int {funcionHashing1,funcionHashing2,funcionHashing3}
 	for _,funcionHash := range secuencia{
+		
+		//recordar agregar chequeos de borrado
 		valor := funcionHash(clave) % len(elementos)
 		if(elementos[valor] == nil || elementos[valor].clave == clave){
 			return valor 
