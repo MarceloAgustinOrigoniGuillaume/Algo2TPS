@@ -23,6 +23,8 @@ func crearElementoHash[K comparable, V any](clave K, valor V) elementoHash[K,V]{
 
 	elemento.clave = clave
 	elemento.valor = valor
+
+	return elemento
 }
 
 type hashCuckoo[K comparable, V any] struct{
@@ -36,6 +38,7 @@ func CrearHashCuckoo[K comparable, V any]() Hash[K,V]{
 
 	elementos = make([]elementoHash,_CAPACIDAD_INICIAL)
 
+	return hash
 }
 
 func buscarPosicionCuckoo(elementos []elementoHash, clave K) int{
@@ -52,12 +55,12 @@ func buscarPosicionCuckoo(elementos []elementoHash, clave K) int{
 	return -1
 }
 func posicionarElementoCuckoo(elementos []elementoHash, elemento elementoHash) bool{
-	posicion := buscarPosicionCuckoo(elementos,elemento.clave)
-	if(posicion == -1){
+	pos := buscarPosicionCuckoo(elementos,elemento.clave)
+	if(pos == -1){
 		return false
 	}
 
-	elementos[posicion] = elemento
+	elementos[pos] = elemento
 
 	return true
 }
