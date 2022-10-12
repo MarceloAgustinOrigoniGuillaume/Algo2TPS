@@ -1,4 +1,4 @@
-package hashAbierto_test
+package diccionario_test
 
 import (
 	TDADiccionario "hash/hashAbierto"

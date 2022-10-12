@@ -141,12 +141,9 @@ func (hash *hashCuckoo[K,V]) buscarPosicionCuckoo(clave K) int{
 
 func (hash *hashCuckoo[K,V]) reintentarInsertadoCuckoo(nuevo *elementoCuckoo[K,V]){
 		// no deberia pasar mas de una vez
-		intentos := 2
-		for !insertarCuckoo(hash.elementos,nuevo,hash.funcionesHash){
+		if !insertarCuckoo(hash.elementos,nuevo,hash.funcionesHash){
 			hash.redimensionar(2*len(hash.elementos))
-			intentos--
-
-			if(intentos <0){
+			if(!insertarCuckoo(hash.elementos,nuevo,hash.funcionesHash)){
 				panic(ERROR_FUNCION_HASH) // no va a ser infinito...
 			}
 
@@ -155,26 +152,14 @@ func (hash *hashCuckoo[K,V]) reintentarInsertadoCuckoo(nuevo *elementoCuckoo[K,V
 
 
 func (hash *hashCuckoo[K,V]) redimensionar(nuevoLargo int){
-	otra_vez := true
-	multiplicador := 1
-	var elementosNew []*elementoCuckoo[K,V]
-	for otra_vez && multiplicador < 8{ // deberia ocurrir solo una vez, dios te salve si las funciones de hash son malas
-		elementosNew = make([]*elementoCuckoo[K,V], multiplicador*nuevoLargo)
-		otra_vez = false
-		hash.Iterar(func (clave K, valor V) bool {
-			if(!insertarCuckoo(elementosNew,crearElementoCuckoo(clave,valor),hash.funcionesHash)){ // no deberia pasar
-				otra_vez = true
-			}
-			return !otra_vez
-		})
-
-		multiplicador *= 2
-	}
+	elementosNew := crearTabla[K,V](2*nuevoLargo)
+	hash.Iterar(func (clave K, valor V) bool {
+		if(!insertarCuckoo(elementosNew,crearElementoCuckoo(clave,valor),hash.funcionesHash)){ // no deberia pasar
+			panic(ERROR_FUNCION_HASH) // no va a ser infinito...
+		}
+		return true
+	})
 	
-	if(multiplicador == 8){
-		panic(ERROR_FUNCION_HASH) // no va a ser infinito...
-	}
-
 	hash.elementos = elementosNew
 }
 
