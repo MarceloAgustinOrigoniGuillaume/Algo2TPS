@@ -1,4 +1,4 @@
-module diccionario
+module hash
 
 go 1.18
 

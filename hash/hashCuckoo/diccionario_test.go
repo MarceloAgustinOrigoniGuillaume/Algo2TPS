@@ -1,7 +1,7 @@
-package diccionario_test
+package hashCuckoo_test
 
 import (
-	TDADiccionario "diccionario"
+	TDADiccionario "hash/hashCuckoo"
 	"fmt"
 	"github.com/stretchr/testify/require"
 	"testing"
