@@ -1,100 +1,104 @@
-package diccionario_test
+package hash_test
 
 import (
-	Hash "diccionario"
+	Hash "hash/aEntregar"
 	"github.com/stretchr/testify/require"
 	"testing"
 )
 
+const ERROR_FUNCION_HASH = "Error: mala funcion de hash, redimension requeridad demasiadas veces seguidas"
+const ERROR_NO_ESTABA = "La clave no pertenece al diccionario"
+const ERROR_ITERADOR_TERMINO = "El iterador termino de iterar"
+
 
 
 func TestAgregado(t *testing.T){
-	hashCuckoo := Hash.CrearHash[string,int]()
+	hash := Hash.CrearHash[string,int]()
 
-	require.NotNil(t,hashCuckoo,"Crear devolvio nil")
+	require.NotNil(t,hash,"Crear devolvio nil")
 
 
-	hashCuckoo.Guardar("Uno",1)
-	hashCuckoo.Guardar("Dos",2)
-	hashCuckoo.Guardar("Tres",3)
+	hash.Guardar("Uno",1)
+	hash.Guardar("Dos",2)
+	hash.Guardar("Tres",3)
 
-	require.EqualValues(t,3,hashCuckoo.Cantidad(),"Cantidad incorrecta")
+	require.EqualValues(t,3,hash.Cantidad(),"Cantidad incorrecta")
 }
 
 
 func TestPertenece(t *testing.T){
-	hashCuckoo := Hash.CrearHash[string,int]()
+	hash := Hash.CrearHash[string,int]()
 
-	require.NotNil(t,hashCuckoo)
+	require.NotNil(t,hash)
 
 
-	hashCuckoo.Guardar("Uno",1)
-	hashCuckoo.Guardar("Dos",2)
-	hashCuckoo.Guardar("Tres",3)
+	hash.Guardar("Uno",1)
+	hash.Guardar("Dos",2)
+	hash.Guardar("Tres",3)
 
-	require.EqualValues(t,3,hashCuckoo.Cantidad(),"Cantidad incorrecta")
+	require.EqualValues(t,3,hash.Cantidad(),"Cantidad incorrecta")
 
-	require.False(t,hashCuckoo.Pertenece("O"),"Se invento una clave 'O'")
-	require.False(t,hashCuckoo.Pertenece(""),"Se invento una clave ''")
-	require.False(t,hashCuckoo.Pertenece("Makise"),"Se invento una clave 'Makise'")
+	require.False(t,hash.Pertenece("O"),"Se invento una clave 'O'")
+	require.False(t,hash.Pertenece(""),"Se invento una clave ''")
+	require.False(t,hash.Pertenece("Makise"),"Se invento una clave 'Makise'")
 
-	require.True(t,hashCuckoo.Pertenece("Uno"),"Se olvido de la clave 'Uno'")
-	require.True(t,hashCuckoo.Pertenece("Dos"),"Se olvido de la clave 'Dos'")
-	require.True(t,hashCuckoo.Pertenece("Tres"),"Se olvido de la clave 'Tres'")
+	require.True(t,hash.Pertenece("Uno"),"Se olvido de la clave 'Uno'")
+	require.True(t,hash.Pertenece("Dos"),"Se olvido de la clave 'Dos'")
+	require.True(t,hash.Pertenece("Tres"),"Se olvido de la clave 'Tres'")
 }
 
 
 
 func TestObtener(t *testing.T){
-	hashCuckoo := Hash.CrearHash[string,int]()
+	hash := Hash.CrearHash[string,int]()
 
-	require.NotNil(t,hashCuckoo)
+	require.NotNil(t,hash)
 
 
-	hashCuckoo.Guardar("Uno",1)
-	hashCuckoo.Guardar("Dos",2)
-	hashCuckoo.Guardar("Tres",3)
+	hash.Guardar("Uno",1)
+	hash.Guardar("Dos",2)
+	hash.Guardar("Tres",3)
 
-	require.EqualValues(t,3,hashCuckoo.Cantidad(),"Cantidad incorrecta")
+	require.EqualValues(t,3,hash.Cantidad(),"Cantidad incorrecta")
 
-	require.PanicsWithValue(t,Hash.ERROR_NO_ESTABA,func() { hashCuckoo.Obtener("Makise")})
-	require.PanicsWithValue(t,Hash.ERROR_NO_ESTABA,func() { hashCuckoo.Obtener("Miu")})
-	require.PanicsWithValue(t,Hash.ERROR_NO_ESTABA,func() { hashCuckoo.Obtener("Inaba")})
-	require.PanicsWithValue(t,Hash.ERROR_NO_ESTABA,func() { hashCuckoo.Obtener("Zero Two")})
+	require.PanicsWithValue(t,ERROR_NO_ESTABA,func() { hash.Obtener("Makise")})
+	require.PanicsWithValue(t,ERROR_NO_ESTABA,func() { hash.Obtener("Miu")})
+	require.PanicsWithValue(t,ERROR_NO_ESTABA,func() { hash.Obtener("Inaba")})
+	require.PanicsWithValue(t,ERROR_NO_ESTABA,func() { hash.Obtener("Zero Two")})
 
-	require.EqualValues(t,1,hashCuckoo.Obtener("Uno"))
-	require.EqualValues(t,2,hashCuckoo.Obtener("Dos"))
-	require.EqualValues(t,3,hashCuckoo.Obtener("Tres"))
+	require.EqualValues(t,1,hash.Obtener("Uno"))
+	require.EqualValues(t,2,hash.Obtener("Dos"))
+	require.EqualValues(t,3,hash.Obtener("Tres"))
 }
 
 
 
 func TestBorrar(t *testing.T){
-	hashCuckoo := Hash.CrearHash[string,int]()
+	hash := Hash.CrearHash[string,int]()
 
-	require.NotNil(t,hashCuckoo)
+	require.NotNil(t,hash)
 
-	hashCuckoo.Guardar("Uno",1)
-	hashCuckoo.Guardar("Dos",2)
-	hashCuckoo.Guardar("Tres",3)
-	hashCuckoo.Guardar("Makise",10)
-	hashCuckoo.Guardar("Inaba",9)
+	hash.Guardar("Uno",1)
+	hash.Guardar("Dos",2)
+	hash.Guardar("Tres",3)
+	hash.Guardar("Makise",10)
+	hash.Guardar("Inaba",9)
 
-	require.EqualValues(t,5,hashCuckoo.Cantidad(),"Cantidad incorrecta")
+	require.EqualValues(t,5,hash.Cantidad(),"Cantidad incorrecta")
 
 	
-	require.EqualValues(t,10,hashCuckoo.Borrar("Makise"))
-	require.EqualValues(t,1,hashCuckoo.Borrar("Uno"))
+	require.EqualValues(t,10,hash.Borrar("Makise"))
+	require.EqualValues(t,1,hash.Borrar("Uno"))
 
-	require.PanicsWithValue(t,Hash.ERROR_NO_ESTABA,func() { hashCuckoo.Borrar("Makise")})
-	require.PanicsWithValue(t,Hash.ERROR_NO_ESTABA,func() { hashCuckoo.Borrar("Misaka")})
-	require.PanicsWithValue(t,Hash.ERROR_NO_ESTABA,func() { hashCuckoo.Obtener("Makise")})
-	require.PanicsWithValue(t,Hash.ERROR_NO_ESTABA,func() { hashCuckoo.Obtener("Uno")})
+	require.PanicsWithValue(t,ERROR_NO_ESTABA,func() { hash.Borrar("Makise")})
+	require.PanicsWithValue(t,ERROR_NO_ESTABA,func() { hash.Borrar("Misaka")})
+	require.PanicsWithValue(t,ERROR_NO_ESTABA,func() { hash.Obtener("Makise")})
+	require.PanicsWithValue(t,ERROR_NO_ESTABA,func() { hash.Obtener("Uno")})
 
-	require.EqualValues(t,9,hashCuckoo.Obtener("Inaba"))
-	require.EqualValues(t,2,hashCuckoo.Obtener("Dos"))
-	require.EqualValues(t,3,hashCuckoo.Obtener("Tres"))
-	require.EqualValues(t,3,hashCuckoo.Cantidad(),"Cantidad incorrecta tras borrar")
+	require.EqualValues(t,9,hash.Obtener("Inaba"))
+	require.EqualValues(t,2,hash.Obtener("Dos"))
+	require.EqualValues(t,3,hash.Obtener("Tres"))
+	require.EqualValues(t,3,hash.Cantidad(),"Cantidad incorrecta tras borrar")
 }
 
 
