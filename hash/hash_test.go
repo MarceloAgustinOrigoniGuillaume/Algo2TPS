@@ -1,9 +1,10 @@
 package hash_test
 
 import (
-	Hash "hash/aEntregar"
+	Hash "hash/hashCuckoo"
 	"github.com/stretchr/testify/require"
 	"testing"
+	"fmt"
 )
 
 const ERROR_FUNCION_HASH = "Error: mala funcion de hash, redimension requeridad demasiadas veces seguidas"
@@ -102,3 +103,31 @@ func TestBorrar(t *testing.T){
 }
 
 
+
+func BenchmarkIterador(b *testing.B) {
+	b.Log("ESTA HACIENDO EL TEST?")
+	n := 12500
+
+	b.Run(fmt.Sprintf("Prueba %d elementos", n+8), func(b *testing.B) {
+		hash := Hash.CrearHash[string,int]()
+		hash.Guardar("Uno",1)
+		hash.Guardar("Dos",2)
+		hash.Guardar("Tres",3)
+		hash.Guardar("Makise",10)
+		hash.Guardar("Inaba",9)
+		hash.Guardar("Misaka",9)
+		hash.Guardar("Miu",9)
+		hash.Guardar("Marcelo",9)	
+		i := 0
+		defer func(){
+			if r:= recover(); r!= nil{
+				b.Log(fmt.Sprintf("Err:%s ... key = %08d",r,i))
+			}
+		}()
+		for i < n {
+			hash.Guardar(fmt.Sprintf("%08d", i),i)
+			i++
+		}
+
+	})		
+}
