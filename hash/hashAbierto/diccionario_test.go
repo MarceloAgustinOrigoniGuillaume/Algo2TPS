@@ -1,7 +1,7 @@
 package hashAbierto_test
 
 import (
-	TDADiccionario "hashAbierto"
+	TDADiccionario "hash/hashAbierto"
 	"fmt"
 	"github.com/stretchr/testify/require"
 	"testing"

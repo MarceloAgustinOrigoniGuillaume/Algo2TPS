@@ -1,7 +1,7 @@
 package hashCerrado_test
 
 import (
-	TDADiccionario "hashCerrado"
+	TDADiccionario "hash/hashCerrado"
 	"fmt"
 	"github.com/stretchr/testify/require"
 	"testing"
