@@ -1,7 +1,7 @@
 package hash_test
 
 import (
-	Hash "hash/hashCuckoo"
+	Hash "hash/hashCuckoo2"
 	"github.com/stretchr/testify/require"
 	"testing"
 	"fmt"

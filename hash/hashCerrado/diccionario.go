@@ -1,4 +1,4 @@
-package hashCerrado
+package diccionario
 
 type Diccionario[K comparable, V any] interface {
 

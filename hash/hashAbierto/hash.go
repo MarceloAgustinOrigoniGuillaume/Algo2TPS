@@ -1,1 +1,1 @@
-package hashAbierto
+package diccionario
