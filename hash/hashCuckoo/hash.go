@@ -2,7 +2,7 @@ package hashCuckoo
 
 import "fmt"
 
-const _CAPACIDAD_INICIAL = 128
+const _CAPACIDAD_INICIAL = 5
 const _MAXIMA_CARGA = 9 // esta constante tendria unidad de 10%, osea 9 = 90%
 const ERROR_FUNCION_HASH = "Error: mala funcion de hash, redimension requeridad demasiadas veces seguidas"
 const ERROR_NO_ESTABA = "La clave no pertenece al diccionario"
@@ -12,27 +12,37 @@ func toBytes[K comparable](objeto K) []byte{
 	return []byte(fmt.Sprintf("%v",objeto))
 }
 
-func funcionHashingGenerica1(bytes []byte) int{
+func plagioDeJenkins(bytes []byte) int{
 	if(len(bytes) == 0){
 		return 0
 	}
 
-	return int(bytes[0] << 1)+ int(bytes[len(bytes)-1] >> 1) + len(bytes)
-}
-
-func funcionHashingGenerica2(bytes []byte) int{
-	res := 256
-
-	if(len(bytes) != 0){
-		res += int(bytes[0])+ int(bytes[len(bytes)-1] << 2) + len(bytes)*2
+	res := int(bytes[0] << 1)+ int(bytes[len(bytes)-1] >> 1) + len(bytes)
+	for _,dato:= range bytes{
+		res += int(dato << 1) >> 2
+		res += res <<3
+		res ^= res>>2
 	}
+
 	return res
 }
 
-func funcionHashingGenerica3(bytes []byte) int{
+func _JenkinsHashFunction(bytes []byte) int{
+	res := 0
+	for i:= 0; i< len(bytes) ; i++{
+		res += int(bytes[i])
+		res += res << 10;
+		res ^= res >> 6;
+	}
+
+	return res
+}
+
+func puraCreatividad(bytes []byte) int{
 	res := 100
 	for i,dato:= range bytes{
-		res += int(dato << 2) - i
+		res += int(dato << 2)*i
+		res ^= (res<<3 | res >> 3)>>2
 	}
 
 	if(res <0){
@@ -76,7 +86,7 @@ func CrearHash[K comparable, V any]() Diccionario[K,V]{
 	hash := new(hashCuckoo[K,V])
 
 	hash.elementos = make([]*elementoCuckoo[K,V],_CAPACIDAD_INICIAL)
-	hash.funcionesHash = []func([]byte) int {funcionHashingGenerica1,funcionHashingGenerica2,funcionHashingGenerica3}
+	hash.funcionesHash = []func([]byte) int {plagioDeJenkins,_JenkinsHashFunction,puraCreatividad}
 
 	return hash
 } 
