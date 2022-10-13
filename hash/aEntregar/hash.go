@@ -1,14 +1,19 @@
 package diccionario
 
+import "reflect"
 import "fmt"
-
 const _CAPACIDAD_INICIAL = 127
-const _MAXIMA_CARGA = 6 // esta constante tendria unidad de 10%, osea 6 = 60%
+const _MAXIMA_CARGA = 4 // esta constante tendria unidad de 10%, osea 4 = 40%
 const ERROR_NO_ESTABA = "La clave no pertenece al diccionario"
 const ERROR_ITERADOR_TERMINO = "El iterador termino de iterar"
 
-func toBytes[K comparable](objeto K) []byte{
-	return []byte(fmt.Sprintf("%v",objeto))
+func toBytes(objeto interface{}) []byte{
+	switch objeto.(type){
+		case string: // se chequea el tipo para saber cuando se puede usar una forma mas rapida
+			return []byte(reflect.ValueOf(objeto).String())
+		default:
+			return []byte(fmt.Sprintf("%v",objeto)) // lento pero justo
+	}
 }
 
 func _JenkinsHashFunction(bytes []byte) int{
@@ -60,7 +65,7 @@ func CrearHash[K comparable, V any]() Diccionario[K,V]{
 	return hash
 } 
 
-// las unidades serian de 10%, aca lo que se haria es comparar el 100% de la cantidad con el (_MAXIMA_CARGA*10)% de la longitud(60%)
+// las unidades serian de 10%, aca lo que se haria es comparar el 100% de la cantidad con el (_MAXIMA_CARGA*10)% de la longitud(40%)
 func (hash *hashCerrado[K,V]) superoCargaPermitida() bool{
 	return 10*hash.cantidad >= len(hash.elementos)*_MAXIMA_CARGA 
 }

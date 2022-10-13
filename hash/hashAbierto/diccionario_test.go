@@ -1,7 +1,7 @@
 package diccionario_test
 
 import (
-	TDADiccionario "hash/aEntregar"
+	TDADiccionario "hash/hashAbierto"
 	"fmt"
 	"github.com/stretchr/testify/require"
 	"testing"
