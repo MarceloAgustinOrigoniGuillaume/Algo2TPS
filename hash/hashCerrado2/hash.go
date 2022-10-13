@@ -3,7 +3,7 @@ package diccionario
 import "fmt"
 
 const _CAPACIDAD_INICIAL = 127
-const _MAXIMA_CARGA = 6 // esta constante tendria unidad de 10%, osea 9 = 70%
+const _MAXIMA_CARGA = 5 // esta constante tendria unidad de 10%, osea 9 = 70%
 const ERROR_NO_ESTABA = "La clave no pertenece al diccionario"
 const ERROR_ITERADOR_TERMINO = "El iterador termino de iterar"
 
@@ -70,16 +70,35 @@ func iterarPosicionCerrado(posInicial int,maximo int,visitar func(int) bool){
 
 	seguir := visitar(posInicial)
 
-	i:= posInicial+1
+
+	toEnd := maximo-posInicial
+	target := posInicial+1
+
+	if( toEnd< target){
+		target = toEnd
+	}
+
+	i:= 1
 
 
-	for seguir && i<maximo{
-		seguir = visitar(i)
+	for seguir && i<target{
+		if(visitar(posInicial+i)){
+			seguir = visitar(posInicial-i)
+		} else{
+			seguir = false
+		}
 		i++
 	}
 
-	i = 0
-	for seguir && i<posInicial{
+	if(target == toEnd){
+		target = posInicial-target
+		i = 0
+	} else{
+		target = maximo
+		i+= posInicial
+	}
+
+	for seguir && i<target{
 		seguir = visitar(i)
 		i++
 	}

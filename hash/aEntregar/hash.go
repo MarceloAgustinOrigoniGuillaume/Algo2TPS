@@ -3,7 +3,7 @@ package diccionario
 import "fmt"
 
 const _CAPACIDAD_INICIAL = 127
-const _MAXIMA_CARGA = 7 // esta constante tendria unidad de 10%, osea 9 = 70%
+const _MAXIMA_CARGA = 6 // esta constante tendria unidad de 10%, osea 6 = 60%
 const ERROR_NO_ESTABA = "La clave no pertenece al diccionario"
 const ERROR_ITERADOR_TERMINO = "El iterador termino de iterar"
 
@@ -60,7 +60,7 @@ func CrearHash[K comparable, V any]() Diccionario[K,V]{
 	return hash
 } 
 
-// las unidades serian de 10%, aca lo que se haria es comparar el 100% de la cantidad con el (_MAXIMA_CARGA*10)% de la longitud(70%)
+// las unidades serian de 10%, aca lo que se haria es comparar el 100% de la cantidad con el (_MAXIMA_CARGA*10)% de la longitud(60%)
 func (hash *hashCerrado[K,V]) superoCargaPermitida() bool{
 	return 10*hash.cantidad >= len(hash.elementos)*_MAXIMA_CARGA 
 }
@@ -69,7 +69,10 @@ func (hash *hashCerrado[K,V]) superoCargaPermitida() bool{
 func iterarPosicionCerrado(posInicial int,maximo int,visitar func(int) bool){
 
 	seguir := visitar(posInicial)
+
 	i:= posInicial+1
+
+
 	for seguir && i<maximo{
 		seguir = visitar(i)
 		i++
@@ -80,8 +83,6 @@ func iterarPosicionCerrado(posInicial int,maximo int,visitar func(int) bool){
 		seguir = visitar(i)
 		i++
 	}
-
-
 }
 
 func insertarCerrado[K comparable, V any](elementos []elementoCerrado[K,V],nuevoElemento elementoCerrado[K,V]) bool{
