@@ -1,7 +1,7 @@
 package hash_test
 
 import (
-	Hash "hash/hashCuckoo2"
+	Hash "hash/hashAbierto"
 	"github.com/stretchr/testify/require"
 	"testing"
 	"fmt"
@@ -102,6 +102,48 @@ func TestBorrar(t *testing.T){
 	require.EqualValues(t,3,hash.Cantidad(),"Cantidad incorrecta tras borrar")
 }
 
+func TestIteradorExterno(t *testing.T){
+	hash := Hash.CrearHash[string,int]()
+
+	require.NotNil(t,hash)
+
+	hash.Guardar("Uno",1)
+	hash.Guardar("Misaka",2)
+	hash.Guardar("Miu",3)
+	hash.Guardar("Makise",10)
+	hash.Guardar("Inaba",9)
+
+	require.EqualValues(t,5,hash.Cantidad(),"Cantidad incorrecta")
+
+	
+	require.EqualValues(t,10,hash.Borrar("Makise"))
+	require.EqualValues(t,1,hash.Borrar("Uno"))
+
+	require.PanicsWithValue(t,ERROR_NO_ESTABA,func() { hash.Borrar("Makise")})
+	require.PanicsWithValue(t,ERROR_NO_ESTABA,func() { hash.Obtener("Makise")})
+	require.PanicsWithValue(t,ERROR_NO_ESTABA,func() { hash.Obtener("Uno")})
+
+	require.EqualValues(t,9,hash.Obtener("Inaba"))
+	require.EqualValues(t,3,hash.Obtener("Miu"))
+	require.EqualValues(t,2,hash.Obtener("Misaka"))
+	require.EqualValues(t,3,hash.Cantidad(),"Cantidad incorrecta tras borrar")
+
+	iterador := hash.Iterador()
+
+	i:= 0
+	for(iterador.HaySiguiente() && i <10){
+		i++
+		t.Log("ITERADOR VIO == "+iterador.Siguiente())
+	}
+
+	require.EqualValues(t,3,i,"No mostro la cantidad correcta el iterador externo?")
+
+
+
+
+
+}
+
 
 
 func BenchmarkIterador(b *testing.B) {
@@ -119,13 +161,33 @@ func BenchmarkIterador(b *testing.B) {
 		hash.Guardar("Miu",9)
 		hash.Guardar("Marcelo",9)	
 		i := 0
+		keys := make([]string,n)
+		values := make([]int,n)
 		defer func(){
 			if r:= recover(); r!= nil{
-				b.Log(fmt.Sprintf("Err:%s ... key = %08d",r,i))
+				b.Log(fmt.Sprintf("Err:%s ... key = %s, value = %d",r,keys[i],values[i]))
 			}
 		}()
+		
 		for i < n {
-			hash.Guardar(fmt.Sprintf("%08d", i),i)
+			keys[i] = fmt.Sprintf("%08d", i)
+			values[i] = i+1
+			hash.Guardar(keys[i],i)
+			hash.Guardar(keys[i],i+1)
+			i++
+		}
+
+		i = 0
+		res := 0
+		for i < n{
+			if(!hash.Pertenece(keys[i])){
+				panic("NO PERTENECIA???")
+			}
+			res = hash.Obtener(keys[i])
+			if(res != values[i]){
+				panic(fmt.Sprintf("Que te inventas???? no es %d",res))
+			}
+
 			i++
 		}
 
