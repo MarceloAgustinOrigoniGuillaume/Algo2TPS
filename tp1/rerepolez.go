@@ -28,6 +28,17 @@ func test(partidos, padron, in, out string) {
 func main() {
 
 	if len(os.Args) < 3 {
+		var numero int = 1<<6
+		var indice uint64 = uint64(numero)
+
+		fmt.Fprintf(os.Stdout,"num := %d uint := %d\n",numero,indice)
+
+		var num uint64 = 432
+
+		fmt.Fprintf(os.Stdout,"modulo := %d\n",int(num%indice))
+
+
+
 		fmt.Fprintf(os.Stdout, errores.ERROR_FALTAN_PARAMETROS+"\n")
 		return
 	}
