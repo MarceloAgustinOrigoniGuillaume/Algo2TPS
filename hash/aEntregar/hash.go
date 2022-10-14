@@ -3,10 +3,20 @@ package diccionario
 import "reflect"
 import "fmt"
 
-const _CAPACIDAD_INICIAL = 127
-const _MAXIMA_CARGA = 4 // esta constante tendria unidad de 10%, osea 4 = 40%
-const ERROR_NO_ESTABA = "La clave no pertenece al diccionario"
-const ERROR_ITERADOR_TERMINO = "El iterador termino de iterar"
+// constants
+type status = int
+
+const (
+	_CAPACIDAD_INICIAL            = 127
+	_MAXIMA_CARGA                 = 4 // esta constante tendria unidad de 10%, osea 4 = 40%
+	ERROR_NO_ESTABA               = "La clave no pertenece al diccionario"
+	ERROR_ITERADOR_TERMINO        = "El iterador termino de iterar"
+	_VACIO                 status = 0
+	_BORRADO               status = -1
+	_OCUPADO               status = 1
+)
+
+// utilities
 
 func toBytes(objeto interface{}) []byte {
 	switch objeto.(type) {
@@ -28,10 +38,14 @@ func _JenkinsHashFunction(bytes []byte) int {
 	return res
 }
 
+func aplicaFuncionDeHash[K comparable](clave K, maximo int) int { // paso intermedio para hacer mas facil cambios
+	return _JenkinsHashFunction(toBytes(clave)) % maximo
+}
+
 type elementoCerrado[K comparable, V any] struct {
 	clave  K
 	valor  V
-	estado int
+	estado status
 }
 
 func crearElementoCerrado[K comparable, V any](clave K, valor V) elementoCerrado[K, V] {
@@ -67,7 +81,7 @@ func (hash *hashCerrado[K, V]) superoCargaPermitida() bool {
 }
 
 func iterarPosicionCerrado(posInicial int, maximo int, visitar func(int) bool) {
-
+	// se hizo la logica sencilla de ir hacia abajo, se probo otras pero no denotaron una mejora
 	seguir := visitar(posInicial)
 
 	i := posInicial + 1
@@ -88,11 +102,11 @@ func insertarCerrado[K comparable, V any](elementos []elementoCerrado[K, V], nue
 
 	agregoNuevo := true
 
-	iterarPosicionCerrado(_JenkinsHashFunction(toBytes(nuevoElemento.clave))%len(elementos), len(elementos),
+	iterarPosicionCerrado(aplicaFuncionDeHash(nuevoElemento.clave, len(elementos)), len(elementos),
 		func(indice int) bool {
-			if elementos[indice].estado == 0 || elementos[indice].clave == nuevoElemento.clave {
-				agregoNuevo = elementos[indice].estado == 0
-				nuevoElemento.estado = 1
+			if elementos[indice].estado == _VACIO || elementos[indice].clave == nuevoElemento.clave {
+				agregoNuevo = elementos[indice].estado == _VACIO
+				nuevoElemento.estado = _OCUPADO
 				elementos[indice] = nuevoElemento
 				return false
 			}
@@ -104,9 +118,9 @@ func insertarCerrado[K comparable, V any](elementos []elementoCerrado[K, V], nue
 
 func (hash *hashCerrado[K, V]) buscarPosicion(clave K) int {
 	res := -1
-	iterarPosicionCerrado(_JenkinsHashFunction(toBytes(clave))%len(hash.elementos), len(hash.elementos),
+	iterarPosicionCerrado(aplicaFuncionDeHash(clave, len(hash.elementos)), len(hash.elementos),
 		func(indice int) bool {
-			if hash.elementos[indice].estado == 0 {
+			if hash.elementos[indice].estado == _VACIO {
 				return false
 			}
 
@@ -164,7 +178,7 @@ func (hash *hashCerrado[K, V]) Borrar(clave K) V {
 
 	elem := hash.elementos[i].valor
 	hash.elementos[i] = crearElementoCerradoVacio[K, V]()
-	hash.elementos[i].estado = -1
+	hash.elementos[i].estado = _BORRADO
 	hash.cantidad--
 	return elem
 }
@@ -175,7 +189,7 @@ func (hash *hashCerrado[K, V]) Cantidad() int {
 
 func (hash *hashCerrado[K, V]) Iterar(visitar func(clave K, dato V) bool) {
 	i := 0
-	for i < len(hash.elementos) && (hash.elementos[i].estado != 1 || visitar(hash.elementos[i].clave, hash.elementos[i].valor)) {
+	for i < len(hash.elementos) && (hash.elementos[i].estado != _OCUPADO || visitar(hash.elementos[i].clave, hash.elementos[i].valor)) {
 		i++
 	}
 }
@@ -202,7 +216,7 @@ func creariteradorCerrado[K comparable, V any](referencia *hashCerrado[K, V]) It
 
 func (iterador *iteradorCerrado[K, V]) iterarSiguiente() {
 	iterador.posActual++
-	for iterador.posActual < len(iterador.referencia.elementos) && iterador.referencia.elementos[iterador.posActual].estado != 1 {
+	for iterador.posActual < len(iterador.referencia.elementos) && iterador.referencia.elementos[iterador.posActual].estado != _OCUPADO {
 		iterador.posActual++
 	}
 }
