@@ -8,127 +8,121 @@ const ERROR_FUNCION_HASH = "Error: mala funcion de hash, redimension requeridad 
 const ERROR_NO_ESTABA = "La clave no pertenece al diccionario"
 const ERROR_ITERADOR_TERMINO = "El iterador termino de iterar"
 
-func toBytes[K comparable](objeto K) []byte{
-	return []byte(fmt.Sprintf("%v",objeto))
+func toBytes[K comparable](objeto K) []byte {
+	return []byte(fmt.Sprintf("%v", objeto))
 }
 
-func plagioDeJenkins(bytes []byte) int{
-	if(len(bytes) == 0){
+func plagioDeJenkins(bytes []byte) int {
+	if len(bytes) == 0 {
 		return 0
 	}
 
-	res := int(bytes[0] << 1)+ int(bytes[len(bytes)-1] >> 1) + len(bytes)
-	for _,dato:= range bytes{
-		res += int(dato << 1) >> 2
-		res += res <<3
-		res ^= res>>2
+	res := int(bytes[0]<<1) + int(bytes[len(bytes)-1]>>1) + len(bytes)
+	for _, dato := range bytes {
+		res += int(dato<<1) >> 2
+		res += res << 3
+		res ^= res >> 2
 	}
 
 	return res
 }
 
-func _JenkinsHashFunction(bytes []byte) int{
+func _JenkinsHashFunction(bytes []byte) int {
 	res := 0
-	for i:= 0; i< len(bytes) ; i++{
+	for i := 0; i < len(bytes); i++ {
 		res += int(bytes[i])
-		res += res << 10;
-		res ^= res >> 6;
+		res += res << 10
+		res ^= res >> 6
 	}
 
 	return res
 }
 
-func puraCreatividad(bytes []byte) int{
+func puraCreatividad(bytes []byte) int {
 	res := 100
-	for i,dato:= range bytes{
-		res += int(dato << 2)*i
-		res ^= (res<<3 | res >> 3)>>2
+	for i, dato := range bytes {
+		res += int(dato<<2) * i
+		res ^= (res<<3 | res>>3) >> 2
 	}
 
-	if(res <0){
+	if res < 0 {
 		res = -res
 	}
 	return res
 
 }
 
-
-type elementoCuckoo[K comparable, V any] struct{
-	clave K
-	valor V
+type elementoCuckoo[K comparable, V any] struct {
+	clave         K
+	valor         V
 	indiceFuncion int
 }
 
-func crearElementoCuckoo[K comparable, V any](clave K, valor V) *elementoCuckoo[K,V]{
-	elemento:= new(elementoCuckoo[K,V])
+func crearElementoCuckoo[K comparable, V any](clave K, valor V) *elementoCuckoo[K, V] {
+	elemento := new(elementoCuckoo[K, V])
 
 	elemento.clave = clave
 	elemento.valor = valor
 	return elemento
 }
 
-func (elemento *elementoCuckoo[K,V]) damePosicionHash(funcionesHash []func([]byte) int) int{
+func (elemento *elementoCuckoo[K, V]) damePosicionHash(funcionesHash []func([]byte) int) int {
 	return funcionesHash[elemento.indiceFuncion](toBytes(elemento.clave))
 }
 
-
-
-type hashCuckoo[K comparable, V any] struct{
-	elementos []*elementoCuckoo[K,V]
-	cantidad int
+type hashCuckoo[K comparable, V any] struct {
+	elementos     []*elementoCuckoo[K, V]
+	cantidad      int
 	funcionesHash []func([]byte) int
 }
 
-func crearTabla[K comparable, V any](largo int) []*elementoCuckoo[K,V]{
-	return make([]*elementoCuckoo[K,V],largo)
+func crearTabla[K comparable, V any](largo int) []*elementoCuckoo[K, V] {
+	return make([]*elementoCuckoo[K, V], largo)
 }
 
+func CrearHash[K comparable, V any]() Diccionario[K, V] {
+	hash := new(hashCuckoo[K, V])
 
-
-func CrearHash[K comparable, V any]() Diccionario[K,V]{
-	hash := new(hashCuckoo[K,V])
-
-	hash.elementos = crearTabla[K,V](_CAPACIDAD_INICIAL)
-	hash.funcionesHash = []func([]byte) int {plagioDeJenkins,_JenkinsHashFunction,puraCreatividad}
+	hash.elementos = crearTabla[K, V](_CAPACIDAD_INICIAL)
+	hash.funcionesHash = []func([]byte) int{plagioDeJenkins, _JenkinsHashFunction, puraCreatividad}
 
 	return hash
-} 
-
-// las unidades serian de 10%, aca lo que se haria es comparar el 100% de la cantidad con el (_MAXIMA_CARGA*10)% de la longitud(90%)
-func (hash *hashCuckoo[K,V]) superoCargaPermitida() bool{
-	return 10*hash.cantidad >= len(hash.elementos)*_MAXIMA_CARGA 
 }
 
-func reemplazoCuckoo[K comparable, V any](elementos []*elementoCuckoo[K,V],nuevoElemento *elementoCuckoo[K,V],funcionesHash []func([]byte) int) *elementoCuckoo[K,V]{
-	pos:= funcionesHash[nuevoElemento.indiceFuncion](toBytes(nuevoElemento.clave)) % len(elementos)
-	aGuardar:= elementos[pos]
+// las unidades serian de 10%, aca lo que se haria es comparar el 100% de la cantidad con el (_MAXIMA_CARGA*10)% de la longitud(90%)
+func (hash *hashCuckoo[K, V]) superoCargaPermitida() bool {
+	return 10*hash.cantidad >= len(hash.elementos)*_MAXIMA_CARGA
+}
+
+func reemplazoCuckoo[K comparable, V any](elementos []*elementoCuckoo[K, V], nuevoElemento *elementoCuckoo[K, V], funcionesHash []func([]byte) int) *elementoCuckoo[K, V] {
+	pos := funcionesHash[nuevoElemento.indiceFuncion](toBytes(nuevoElemento.clave)) % len(elementos)
+	aGuardar := elementos[pos]
 	elementos[pos] = nuevoElemento
 
-	if(aGuardar != nil){
+	if aGuardar != nil {
 		aGuardar.indiceFuncion++
-		if aGuardar.indiceFuncion == len(funcionesHash){
+		if aGuardar.indiceFuncion == len(funcionesHash) {
 			aGuardar.indiceFuncion = 0
 		}
 	}
 
-	return aGuardar	
+	return aGuardar
 }
 
-func insertarCuckoo[K comparable, V any](elementos []*elementoCuckoo[K,V],nuevoElemento *elementoCuckoo[K,V], funcionesHash []func([]byte) int) bool{
-	posicionando := reemplazoCuckoo(elementos,nuevoElemento,funcionesHash)
+func insertarCuckoo[K comparable, V any](elementos []*elementoCuckoo[K, V], nuevoElemento *elementoCuckoo[K, V], funcionesHash []func([]byte) int) bool {
+	posicionando := reemplazoCuckoo(elementos, nuevoElemento, funcionesHash)
 
-	for (posicionando != nil && (posicionando != nuevoElemento || nuevoElemento.indiceFuncion != 0)) {
-		posicionando = reemplazoCuckoo(elementos,posicionando,funcionesHash)
+	for posicionando != nil && (posicionando != nuevoElemento || nuevoElemento.indiceFuncion != 0) {
+		posicionando = reemplazoCuckoo(elementos, posicionando, funcionesHash)
 	}
 
 	return posicionando == nil
 }
 
-
-func (hash *hashCuckoo[K,V]) buscarPosicionCuckoo(clave K) int{
-	for _,funcionHash := range hash.funcionesHash{
+func (hash *hashCuckoo[K, V]) buscarPosicionCuckoo(clave K) int {
+	for _, funcionHash := range hash.funcionesHash {
 		indice := funcionHash(toBytes(clave)) % len(hash.elementos)
-		if(hash.elementos[indice] != nil && hash.elementos[indice].clave == clave){
+		if hash.elementos[indice] != nil && hash.elementos[indice].clave == clave {
 			return indice
 		}
 	}
@@ -136,33 +130,29 @@ func (hash *hashCuckoo[K,V]) buscarPosicionCuckoo(clave K) int{
 	return -1
 }
 
+func (hash *hashCuckoo[K, V]) reintentarInsertadoCuckoo(nuevo *elementoCuckoo[K, V]) {
+	// no deberia pasar mas de una vez
+	intentos := 2
+	for !insertarCuckoo(hash.elementos, nuevo, hash.funcionesHash) {
+		hash.redimensionar(2 * len(hash.elementos))
+		intentos--
 
-
-
-func (hash *hashCuckoo[K,V]) reintentarInsertadoCuckoo(nuevo *elementoCuckoo[K,V]){
-		// no deberia pasar mas de una vez
-		intentos := 2
-		for !insertarCuckoo(hash.elementos,nuevo,hash.funcionesHash){
-			hash.redimensionar(2*len(hash.elementos))
-			intentos--
-
-			if(intentos <0){
-				panic(ERROR_FUNCION_HASH) // no va a ser infinito...
-			}
-
+		if intentos < 0 {
+			panic(ERROR_FUNCION_HASH) // no va a ser infinito...
 		}
+
+	}
 }
 
-
-func (hash *hashCuckoo[K,V]) redimensionar(nuevoLargo int){
+func (hash *hashCuckoo[K, V]) redimensionar(nuevoLargo int) {
 	otra_vez := true
 	multiplicador := 1
-	var elementosNew []*elementoCuckoo[K,V]
-	for otra_vez && multiplicador < 8{ // deberia ocurrir solo una vez, dios te salve si las funciones de hash son malas
-		elementosNew = make([]*elementoCuckoo[K,V], multiplicador*nuevoLargo)
+	var elementosNew []*elementoCuckoo[K, V]
+	for otra_vez && multiplicador < 8 { // deberia ocurrir solo una vez, dios te salve si las funciones de hash son malas
+		elementosNew = make([]*elementoCuckoo[K, V], multiplicador*nuevoLargo)
 		otra_vez = false
-		hash.Iterar(func (clave K, valor V) bool {
-			if(!insertarCuckoo(elementosNew,crearElementoCuckoo(clave,valor),hash.funcionesHash)){ // no deberia pasar
+		hash.Iterar(func(clave K, valor V) bool {
+			if !insertarCuckoo(elementosNew, crearElementoCuckoo(clave, valor), hash.funcionesHash) { // no deberia pasar
 				otra_vez = true
 			}
 			return !otra_vez
@@ -170,50 +160,47 @@ func (hash *hashCuckoo[K,V]) redimensionar(nuevoLargo int){
 
 		multiplicador *= 2
 	}
-	
-	if(multiplicador == 8){
+
+	if multiplicador == 8 {
 		panic(ERROR_FUNCION_HASH) // no va a ser infinito...
 	}
 
 	hash.elementos = elementosNew
 }
 
-
-
-func (hash *hashCuckoo[K,V]) Guardar(clave K, valor V){
+func (hash *hashCuckoo[K, V]) Guardar(clave K, valor V) {
 	indice := hash.buscarPosicionCuckoo(clave)
 
-	if(indice == -1){
-		nuevo:= crearElementoCuckoo(clave,valor)
+	if indice == -1 {
+		nuevo := crearElementoCuckoo(clave, valor)
 		hash.cantidad++
 
-		if(hash.superoCargaPermitida() || !insertarCuckoo(hash.elementos,nuevo,hash.funcionesHash)){
+		if hash.superoCargaPermitida() || !insertarCuckoo(hash.elementos, nuevo, hash.funcionesHash) {
 			hash.reintentarInsertadoCuckoo(nuevo)
 		}
 
-	} else{
+	} else {
 		hash.elementos[indice].valor = valor
 	}
 
 }
 
-
-func (hash *hashCuckoo[K,V]) Pertenece(clave K) bool{
+func (hash *hashCuckoo[K, V]) Pertenece(clave K) bool {
 	return hash.buscarPosicionCuckoo(clave) != -1
 }
 
-func (hash *hashCuckoo[K,V]) Obtener(clave K) V{
-	i:= hash.buscarPosicionCuckoo(clave)
-	if(i == -1){
+func (hash *hashCuckoo[K, V]) Obtener(clave K) V {
+	i := hash.buscarPosicionCuckoo(clave)
+	if i == -1 {
 		panic(ERROR_NO_ESTABA)
 	}
 	return hash.elementos[i].valor
 }
 
-func (hash *hashCuckoo[K,V]) Borrar(clave K) V{
-	i:= hash.buscarPosicionCuckoo(clave)
-	
-	if(i == -1){
+func (hash *hashCuckoo[K, V]) Borrar(clave K) V {
+	i := hash.buscarPosicionCuckoo(clave)
+
+	if i == -1 {
 		panic(ERROR_NO_ESTABA)
 	}
 
@@ -223,35 +210,30 @@ func (hash *hashCuckoo[K,V]) Borrar(clave K) V{
 	return elem
 }
 
-func (hash *hashCuckoo[K,V]) Cantidad() int{
+func (hash *hashCuckoo[K, V]) Cantidad() int {
 	return hash.cantidad
 }
-	
-func (hash *hashCuckoo[K,V]) Iterar(visitar func(clave K, dato V) bool){
-	i:= 0
-	for (i<len(hash.elementos) && (hash.elementos[i] == nil || visitar(hash.elementos[i].clave, hash.elementos[i].valor))){
+
+func (hash *hashCuckoo[K, V]) Iterar(visitar func(clave K, dato V) bool) {
+	i := 0
+	for i < len(hash.elementos) && (hash.elementos[i] == nil || visitar(hash.elementos[i].clave, hash.elementos[i].valor)) {
 		i++
-	}	
+	}
 }
-
-
-
-
-
 
 // Iterador externo
 
-func (hash *hashCuckoo[K,V]) Iterador() IterDiccionario[K,V]{
+func (hash *hashCuckoo[K, V]) Iterador() IterDiccionario[K, V] {
 	return crearIteradorCuckoo(hash)
 }
 
-type iteradorCuckoo[K comparable, V any] struct{
-	referencia *hashCuckoo[K,V]
-	posActual int
+type iteradorCuckoo[K comparable, V any] struct {
+	referencia *hashCuckoo[K, V]
+	posActual  int
 }
 
-func crearIteradorCuckoo[K comparable, V any](referencia *hashCuckoo[K,V]) IterDiccionario[K,V]{
-	iterador := new(iteradorCuckoo[K,V])
+func crearIteradorCuckoo[K comparable, V any](referencia *hashCuckoo[K, V]) IterDiccionario[K, V] {
+	iterador := new(iteradorCuckoo[K, V])
 
 	iterador.referencia = referencia
 	iterador.posActual = -1
@@ -259,35 +241,32 @@ func crearIteradorCuckoo[K comparable, V any](referencia *hashCuckoo[K,V]) IterD
 	return iterador
 }
 
-func (iterador *iteradorCuckoo[K,V]) iterarSiguiente(){
+func (iterador *iteradorCuckoo[K, V]) iterarSiguiente() {
 	iterador.posActual++
-	for iterador.posActual < len(iterador.referencia.elementos) && iterador.referencia.elementos[iterador.posActual] == nil{
+	for iterador.posActual < len(iterador.referencia.elementos) && iterador.referencia.elementos[iterador.posActual] == nil {
 		iterador.posActual++
 	}
 }
-func (iterador *iteradorCuckoo[K,V]) panicTermino(){
-	if(!iterador.HaySiguiente()){
+func (iterador *iteradorCuckoo[K, V]) panicTermino() {
+	if !iterador.HaySiguiente() {
 		panic(ERROR_ITERADOR_TERMINO)
 	}
 }
 
-func (iterador *iteradorCuckoo[K,V]) HaySiguiente() bool {
+func (iterador *iteradorCuckoo[K, V]) HaySiguiente() bool {
 	return iterador.posActual < len(iterador.referencia.elementos)
 }
 
-func (iterador *iteradorCuckoo[K,V]) VerActual() (K, V) {
+func (iterador *iteradorCuckoo[K, V]) VerActual() (K, V) {
 	iterador.panicTermino()
-	elemento:= iterador.referencia.elementos[iterador.posActual]
-	return elemento.clave,elemento.valor
+	elemento := iterador.referencia.elementos[iterador.posActual]
+	return elemento.clave, elemento.valor
 }
 
-func (iterador *iteradorCuckoo[K,V]) Siguiente() K {
+func (iterador *iteradorCuckoo[K, V]) Siguiente() K {
 	iterador.panicTermino()
 	claveActual := iterador.referencia.elementos[iterador.posActual].clave
 	iterador.iterarSiguiente()
 	return claveActual
 
-
-
-	
 }

@@ -1,10 +1,10 @@
 package xxh3
 
 import (
+	"bytes"
+	"encoding/binary"
 	"math/bits"
 	"unsafe"
-	"encoding/binary"
-	"bytes"
 )
 
 var key = ptr(&[...]u8{
@@ -24,27 +24,26 @@ var key = ptr(&[...]u8{
 
 //utils
 
-type(
+type (
 	ptr = unsafe.Pointer
 	u64 = uint64
-	u8 = uint8
+	u8  = uint8
 	u32 = uint32
 	ui  = uintptr
 )
-type GeneralBytes struct{
+type GeneralBytes struct {
 	p ptr
 	u uint
 }
 
-//constants
-const(
-
+// constants
+const (
 	prime64_1 = 11400714785074694791
 	prime64_2 = 14029467366897019727
 	prime64_3 = 1609587929392839161
 
 	key32_000 u32 = 0xbe4ba423
-	key32_004 u32 = 0x396cfeb8	
+	key32_004 u32 = 0x396cfeb8
 	key64_000 u64 = 0xbe4ba423396cfeb8
 	key64_008 u64 = 0x1cad21f72c81017c
 	key64_016 u64 = 0xdb979083e96dd4de
@@ -64,10 +63,7 @@ const(
 
 	key64_119 u64 = 0x7378d9c97e9fc831
 	key64_127 u64 = 0xebd33483acc5ea64
-
 )
-
-
 
 func readU8(p ptr, o ui) uint8 {
 	return *(*uint8)(ptr(ui(p) + o))
@@ -110,7 +106,6 @@ func mulFold64(x, y u64) u64 {
 	return hi ^ lo
 }
 
-
 func Rrmxmx(h64 u64, len u64) u64 {
 	h64 ^= bits.RotateLeft64(h64, 49) ^ bits.RotateLeft64(h64, 24)
 	h64 *= 0x9fb21c651e98df25
@@ -120,10 +115,7 @@ func Rrmxmx(h64 u64, len u64) u64 {
 	return h64
 }
 
-
-
 // Hash function
-
 
 func hashAny(s GeneralBytes) (acc u64) {
 	p, l := s.p, s.u
@@ -184,7 +176,7 @@ func hashAny(s GeneralBytes) (acc u64) {
 
 		return Xxh3Avalanche(acc)
 
-	default://case l <= 240:
+	default: //case l <= 240:
 		acc = u64(l) * prime64_1
 
 		acc += mulFold64(readU64(p, 0*16+0)^key64_000, readU64(p, 0*16+8)^key64_008)
@@ -213,29 +205,23 @@ func hashAny(s GeneralBytes) (acc u64) {
 	}
 }
 
-
-
 func Hash(b []byte) uint64 {
 	return hashAny(*(*GeneralBytes)(ptr(&b)))
 }
 
-
 func HashGeneral[T any](b T) uint64 {
-	size:= binary.Size(b)
-	if(size== -1){
+	size := binary.Size(b)
+	if size == -1 {
 		panic("WAS NOT FIXED SIZE?")
 	}
 
 	var byteBuff bytes.Buffer
 
-	binary.Write(&byteBuff,binary.BigEndian,b) 
+	binary.Write(&byteBuff, binary.BigEndian, b)
 	return Hash(byteBuff.Bytes())
 }
 
-func HashShort(b []byte) uint64{
+func HashShort(b []byte) uint64 {
 	return hashAny(*(*GeneralBytes)(ptr(&b)))
 
 }
-
-
-

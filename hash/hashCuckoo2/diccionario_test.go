@@ -1,9 +1,9 @@
 package diccionario_test
 
 import (
-	TDADiccionario "hash/hashCuckoo2"
 	"fmt"
 	"github.com/stretchr/testify/require"
+	TDADiccionario "hash/hashCuckoo2"
 	"testing"
 )
 
