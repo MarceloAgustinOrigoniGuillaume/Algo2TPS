@@ -1,6 +1,6 @@
 package diccionario
 
-import "reflect"
+import reflection "reflect"
 import "fmt"
 
 // constants
@@ -22,7 +22,7 @@ const (
 func toBytes(objeto interface{}) []byte {
 	switch objeto.(type) {
 	case string: // se chequea el tipo para saber cuando se puede usar una forma mas rapida
-		return []byte(reflect.ValueOf(objeto).String())
+		return []byte(reflection.ValueOf(objeto).String())
 	default:
 		return []byte(fmt.Sprintf("%v", objeto)) // lento pero justo
 	}
@@ -47,12 +47,6 @@ type elementoCerrado[K comparable, V any] struct {
 	clave  K
 	valor  V
 	estado status
-}
-
-func (elemento *elementoCerrado[K, V]) modificar(clave K, valor V, estado status) {
-	elemento.clave = clave
-	elemento.valor = valor
-	elemento.estado = estado
 }
 
 func crearElementoCerrado[K comparable, V any](clave K, valor V) elementoCerrado[K, V] {
@@ -92,47 +86,63 @@ func (hash *hashCerrado[K, V]) ocupaMuchaMemoria() bool {
 	return len(hash.elementos) >= 2*_CAPACIDAD_INICIAL && 100*hash.cantidad <= len(hash.elementos)*_MINIMA_CARGA
 }
 
-func iterarPosicionCerrado[K comparable, V any](elementos []elementoCerrado[K, V], clave K, continuar func(int) bool) {
-	posInicial := aplicaFuncionDeHash(clave, len(elementos))
 
+func deberiaSeguir[K comparable, V any](elemento *elementoCerrado[K,V],clave K) bool{
+	return elemento.estado != _VACIO && elemento.clave != clave
+}
+func buscarElementoCerrado[K comparable, V any](elementos []elementoCerrado[K, V], clave K, haceAlgo func(int)) int{
+	
+	posInicial := aplicaFuncionDeHash(clave, len(elementos))
 	i := posInicial
-	for i < len(elementos) && continuar(i) {
+
+	for i < len(elementos) && deberiaSeguir(&elementos[i],clave) {
+		haceAlgo(i)
 		i++
 	}
 	if i < len(elementos) {
-		return
+		return i
 	}
 
 	i = 0
-	for i < posInicial && continuar(i) {
+	for i < posInicial && deberiaSeguir(&elementos[i],clave) {
+		haceAlgo(i)
 		i++
 	}
+
+	if i == posInicial{
+		i = -1 // significaria recorrio todo sin exito
+	}
+
+	return i
 
 }
 
 func buscarElementoAModificar[K comparable, V any](elementos []elementoCerrado[K, V], clave K) int {
-	indiceRes := -1
-	iterarPosicionCerrado(elementos, clave, func(indice int) bool {
-		if elementos[indice].estado != _OCUPADO || elementos[indice].clave == clave {
+	indiceRes:=-1
+	ultimoIndice := buscarElementoCerrado(elementos, clave, func(indice int) {
+		if indiceRes == -1 && elementos[indice].estado == _BORRADO{  // se agarra el primer borrado por defecto
 			indiceRes = indice
-			return false
 		}
-		return true
 	})
+
+	// mantiene primer borrado, si no se encontro el elemento
+	if (ultimoIndice != -1 && (indiceRes == -1 || elementos[ultimoIndice].estado != _VACIO)){ 
+		indiceRes = ultimoIndice
+	}
 	return indiceRes
 }
 
 func (hash *hashCerrado[K, V]) buscarPosicion(clave K) int {
-	indiceRes := -1
-	iterarPosicionCerrado(hash.elementos, clave, func(indice int) bool {
-		if hash.elementos[indice].clave == clave {
-			indiceRes = indice
-			return false
-		}
-		return hash.elementos[indice].estado != _VACIO
-	})
-	return indiceRes
+	indice := buscarElementoCerrado(hash.elementos, clave, func(indice int) {})
+	
+	if(hash.elementos[indice].estado != _OCUPADO){
+		indice = -1
+	}
+
+	return indice
 }
+
+
 
 func (hash *hashCerrado[K, V]) redimensionar(nuevoLargo int) {
 	nuevos := crearTabla[K, V](nuevoLargo)
@@ -163,29 +173,33 @@ func (hash *hashCerrado[K, V]) Guardar(clave K, valor V) {
 	hash.elementos[indice] = crearElementoCerrado(clave, valor)
 }
 
+
+
+// da el elemento si pertenece, sino panic
+func (hash *hashCerrado[K, V]) dameElemento(ind int) *elementoCerrado[K,V]{
+	if (ind  == -1){
+		panic(ERROR_NO_ESTABA)
+	}
+
+	return &hash.elementos[ind]
+}
+
 func (hash *hashCerrado[K, V]) Pertenece(clave K) bool {
 	return hash.buscarPosicion(clave) != -1
 }
 
+
+
 func (hash *hashCerrado[K, V]) Obtener(clave K) V {
-	indice := hash.buscarPosicion(clave)
-	if indice == -1 {
-		panic(ERROR_NO_ESTABA)
-	}
-	return hash.elementos[indice].valor
+	return hash.dameElemento(hash.buscarPosicion(clave)).valor
 }
 
 func (hash *hashCerrado[K, V]) Borrar(clave K) V {
-	indice := hash.buscarPosicion(clave)
-
-	if indice == -1 {
-		panic(ERROR_NO_ESTABA)
-	}
-
-	elem := hash.elementos[indice].valor
+	elemento := hash.dameElemento(hash.buscarPosicion(clave))
+	elem := elemento.valor
 	hash.cantidad--
-	hash.elementos[indice] = crearElementoCerradoVacio[K, V]()
-	hash.elementos[indice].estado = _BORRADO
+	*elemento = crearElementoCerradoVacio[K, V]()
+	elemento.estado = _BORRADO
 	hash.borrados++
 
 	if hash.ocupaMuchaMemoria() {

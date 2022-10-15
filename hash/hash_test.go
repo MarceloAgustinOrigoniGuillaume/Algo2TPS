@@ -8,7 +8,6 @@ import (
 	HashCuckoo "hash/hashCuckoo"
 
 	Hash "hash/hashCerrado"
-	HashCerrado2 "hash/hashCerrado2"
 	HashCerrado3 "hash/hashCerrado3"
 	"hash/xxh3"
 	"reflect"
@@ -252,7 +251,7 @@ func ejecutarPruebasVolumenIterador(b *testing.T, n int) {
 	require.True(b, ok, "No se cambiaron todos los elementos")
 }
 
-/*
+///*
 func TestAgregado(t *testing.T) {
 	hash := Hash.CrearHash[string, int]()
 
@@ -261,8 +260,11 @@ func TestAgregado(t *testing.T) {
 	hash.Guardar("Uno", 1)
 	hash.Guardar("Dos", 2)
 	hash.Guardar("Tres", 3)
+	hash.Guardar("Cuatro", 3)
+	hash.Guardar("Cinco", 3)
+	hash.Guardar("Cinco", 6)
 
-	require.EqualValues(t, 3, hash.Cantidad(), "Cantidad incorrecta")
+	require.EqualValues(t, 5, hash.Cantidad(), "Cantidad incorrecta")
 }
 
 func TestPertenece(t *testing.T) {
@@ -369,7 +371,7 @@ func TestIteradorExterno(t *testing.T) {
 	require.EqualValues(t, 3, i, "No mostro la cantidad correcta el iterador externo?")
 
 }
-*/
+//*/
 
 func _JenkinsHashFunction(bytes []byte) uint64 {
 	var res uint64 = 0
@@ -484,12 +486,10 @@ func testVolumenSteppedPara(t *testing.T, n int, iteraciones int64, tipo string,
 
 func TestVolumen(t *testing.T) {
 	n := 400000
-	const iteraciones int64 = 20
+	const iteraciones int64 = 10
 
 	t.Log(fmt.Sprintf("pruebas de %d elementos %d veces", n, iteraciones))
 
-	testVolumenSteppedPara(t, n, iteraciones, "Hash cerrado sin redim borrar",
-		func() Diccionario[string, int] { return HashCerrado2.CrearHash[string, int]() })
 
 	testVolumenSteppedPara(t, n, iteraciones, "Hash cerrado ints based",
 		func() Diccionario[string, int] { return Hash.CrearHash[string, int]() })
@@ -505,5 +505,6 @@ func TestVolumen(t *testing.T) {
 
 	testVolumenSteppedPara(t, n, 2, "Hash cuckoo",
 		func() Diccionario[string, int] { return HashCuckoo.CrearHash[string, int]() })
+
 	//ejecutarPruebasVolumenIterador(t,n)
 }
