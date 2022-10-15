@@ -1,36 +1,50 @@
 package diccionario
 
 import "fmt"
+import "reflect"
+import "hash/xxh3"
 
 const _CAPACIDAD_INICIAL = 127
-const _MAXIMA_CARGA = 9 // esta constante tendria unidad de 10%, osea 9 = 90%
+const _MAXIMA_CARGA = 7 // esta constante tendria unidad de 10%, osea 9 = 90%
 const ERROR_FUNCION_HASH = "Error: mala funcion de hash, redimension requeridad demasiadas veces seguidas"
 const ERROR_NO_ESTABA = "La clave no pertenece al diccionario"
 const ERROR_ITERADOR_TERMINO = "El iterador termino de iterar"
 
-func toBytes[K comparable](objeto K) []byte {
-	return []byte(fmt.Sprintf("%v", objeto))
+func toBytes(objeto interface{}) []byte {
+	switch objeto.(type) {
+	case string: // se chequea el tipo para saber cuando se puede usar una forma mas rapida
+		return []byte(reflect.ValueOf(objeto).String())
+	default:
+		return []byte(fmt.Sprintf("%v", objeto)) //*((*[]byte) unsafe.Pointer(reflect.ValueOf(objeto).Pointer()) )
+	}
+	//return []byte(fmt.Sprintf("%v",objeto))
 }
 
-func plagioDeJenkins(bytes []byte) int {
+func creatividad2(bytes []byte) uint64 {
 	if len(bytes) == 0 {
 		return 0
 	}
-
-	res := int(bytes[0]<<1) + int(bytes[len(bytes)-1]>>1) + len(bytes)
-	for _, dato := range bytes {
-		res += int(dato<<1) >> 2
-		res += res << 3
-		res ^= res >> 2
+	i := 0
+	i2 := len(bytes) - 1
+	var res uint64 = (uint64(bytes[0]<<1|bytes[i2]>>1) + uint64(bytes[i2]>>1))
+	res ^= res << 6
+	res ^= res >> 3
+	i++
+	i2--
+	for i < 3 && i < i2 {
+		res += (uint64(bytes[i]<<1|bytes[i2]>>1) + uint64(bytes[i2]>>1))
+		res = (res ^ (res << 6)) ^ (res >> 3)
+		i++
+		i2--
 	}
 
 	return res
 }
 
-func _JenkinsHashFunction(bytes []byte) int {
-	res := 0
+func _JenkinsHashFunction(bytes []byte) uint64 {
+	var res uint64 = 0
 	for i := 0; i < len(bytes); i++ {
-		res += int(bytes[i])
+		res += uint64(bytes[i])
 		res += res << 10
 		res ^= res >> 6
 	}
@@ -38,18 +52,23 @@ func _JenkinsHashFunction(bytes []byte) int {
 	return res
 }
 
-func puraCreatividad(bytes []byte) int {
-	res := 100
-	for i, dato := range bytes {
-		res += int(dato<<2) * i
-		res ^= (res<<3 | res>>3) >> 2
-	}
+func puraCreatividad(bytes []byte) uint64 {
 
-	if res < 0 {
-		res = -res
-	}
-	return res
+	return xxh3.Hash(bytes)
+	/*
+		res := 127 + len(bytes)
 
+		for _,dato:= range bytes{
+			res += int(dato <<2)
+			res ^= (res<<3 ^ res >> 3)<<1
+		}
+
+		if(res <0){
+			res = -res
+		}
+
+		return res
+	*/
 }
 
 type elementoCuckoo[K comparable, V any] struct {
@@ -66,14 +85,18 @@ func crearElementoCuckoo[K comparable, V any](clave K, valor V) *elementoCuckoo[
 	return elemento
 }
 
-func (elemento *elementoCuckoo[K, V]) damePosicionHash(funcionesHash []func([]byte) int) int {
-	return funcionesHash[elemento.indiceFuncion](toBytes(elemento.clave))
+func hasheame(bytes []byte, funcion func([]byte) uint64, max int) int {
+	return int(funcion(bytes) % uint64(max))
+}
+
+func (elemento *elementoCuckoo[K, V]) damePosicionHash(funcionesHash []func([]byte) uint64, max int) int {
+	return hasheame(toBytes(elemento.clave), funcionesHash[elemento.indiceFuncion], max)
 }
 
 type hashCuckoo[K comparable, V any] struct {
 	elementos     []*elementoCuckoo[K, V]
 	cantidad      int
-	funcionesHash []func([]byte) int
+	funcionesHash []func([]byte) uint64
 }
 
 func crearTabla[K comparable, V any](largo int) []*elementoCuckoo[K, V] {
@@ -84,7 +107,7 @@ func CrearHash[K comparable, V any]() Diccionario[K, V] {
 	hash := new(hashCuckoo[K, V])
 
 	hash.elementos = crearTabla[K, V](_CAPACIDAD_INICIAL)
-	hash.funcionesHash = []func([]byte) int{plagioDeJenkins, _JenkinsHashFunction, puraCreatividad}
+	hash.funcionesHash = []func([]byte) uint64{puraCreatividad, _JenkinsHashFunction}
 
 	return hash
 }
@@ -94,8 +117,8 @@ func (hash *hashCuckoo[K, V]) superoCargaPermitida() bool {
 	return 10*hash.cantidad >= len(hash.elementos)*_MAXIMA_CARGA
 }
 
-func reemplazoCuckoo[K comparable, V any](elementos []*elementoCuckoo[K, V], nuevoElemento *elementoCuckoo[K, V], funcionesHash []func([]byte) int) *elementoCuckoo[K, V] {
-	pos := funcionesHash[nuevoElemento.indiceFuncion](toBytes(nuevoElemento.clave)) % len(elementos)
+func reemplazoCuckoo[K comparable, V any](elementos []*elementoCuckoo[K, V], nuevoElemento *elementoCuckoo[K, V], funcionesHash []func([]byte) uint64) *elementoCuckoo[K, V] {
+	pos := nuevoElemento.damePosicionHash(funcionesHash, len(elementos))
 	aGuardar := elementos[pos]
 	elementos[pos] = nuevoElemento
 
@@ -109,7 +132,7 @@ func reemplazoCuckoo[K comparable, V any](elementos []*elementoCuckoo[K, V], nue
 	return aGuardar
 }
 
-func insertarCuckoo[K comparable, V any](elementos []*elementoCuckoo[K, V], nuevoElemento *elementoCuckoo[K, V], funcionesHash []func([]byte) int) bool {
+func insertarCuckoo[K comparable, V any](elementos []*elementoCuckoo[K, V], nuevoElemento *elementoCuckoo[K, V], funcionesHash []func([]byte) uint64) bool {
 	posicionando := reemplazoCuckoo(elementos, nuevoElemento, funcionesHash)
 
 	for posicionando != nil && (posicionando != nuevoElemento || nuevoElemento.indiceFuncion != 0) {
@@ -120,8 +143,9 @@ func insertarCuckoo[K comparable, V any](elementos []*elementoCuckoo[K, V], nuev
 }
 
 func (hash *hashCuckoo[K, V]) buscarPosicionCuckoo(clave K) int {
+	bytes := toBytes(clave)
 	for _, funcionHash := range hash.funcionesHash {
-		indice := funcionHash(toBytes(clave)) % len(hash.elementos)
+		indice := hasheame(bytes, funcionHash, len(hash.elementos))
 		if hash.elementos[indice] != nil && hash.elementos[indice].clave == clave {
 			return indice
 		}
@@ -132,38 +156,23 @@ func (hash *hashCuckoo[K, V]) buscarPosicionCuckoo(clave K) int {
 
 func (hash *hashCuckoo[K, V]) reintentarInsertadoCuckoo(nuevo *elementoCuckoo[K, V]) {
 	// no deberia pasar mas de una vez
-	intentos := 2
-	for !insertarCuckoo(hash.elementos, nuevo, hash.funcionesHash) {
-		hash.redimensionar(2 * len(hash.elementos))
-		intentos--
-
-		if intentos < 0 {
-			panic(ERROR_FUNCION_HASH) // no va a ser infinito...
-		}
-
+	hash.redimensionar(2 * len(hash.elementos))
+	if !insertarCuckoo(hash.elementos, nuevo, hash.funcionesHash) {
+		panic(ERROR_FUNCION_HASH) // no va a ser infinito...
 	}
 }
 
 func (hash *hashCuckoo[K, V]) redimensionar(nuevoLargo int) {
-	otra_vez := true
-	multiplicador := 1
-	var elementosNew []*elementoCuckoo[K, V]
-	for otra_vez && multiplicador < 8 { // deberia ocurrir solo una vez, dios te salve si las funciones de hash son malas
-		elementosNew = make([]*elementoCuckoo[K, V], multiplicador*nuevoLargo)
-		otra_vez = false
-		hash.Iterar(func(clave K, valor V) bool {
-			if !insertarCuckoo(elementosNew, crearElementoCuckoo(clave, valor), hash.funcionesHash) { // no deberia pasar
-				otra_vez = true
-			}
-			return !otra_vez
-		})
 
-		multiplicador *= 2
-	}
+	//fmt.Printf("\nREDIMENSIONANDO CUANDO %d porciento\n",((100.0)*hash.cantidad)/len(hash.elementos))
 
-	if multiplicador == 8 {
-		panic(ERROR_FUNCION_HASH) // no va a ser infinito...
-	}
+	elementosNew := crearTabla[K, V](2 * nuevoLargo)
+	hash.Iterar(func(clave K, valor V) bool {
+		if !insertarCuckoo(elementosNew, crearElementoCuckoo(clave, valor), hash.funcionesHash) { // no deberia pasar
+			panic(ERROR_FUNCION_HASH) // no va a ser infinito...
+		}
+		return true
+	})
 
 	hash.elementos = elementosNew
 }

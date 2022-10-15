@@ -107,7 +107,7 @@ func CrearHash[K comparable, V any]() Diccionario[K, V] {
 	hash := new(hashCuckoo[K, V])
 
 	hash.elementos = crearTabla[K, V](_CAPACIDAD_INICIAL)
-	hash.funcionesHash = []func([]byte) uint64{puraCreatividad, _JenkinsHashFunction}
+	hash.funcionesHash = []func([]byte) uint64{xxh3.Hash, _JenkinsHashFunction}
 
 	return hash
 }

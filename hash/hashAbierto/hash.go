@@ -1,15 +1,21 @@
 package diccionario
 
 import "fmt"
+import "reflect"
 import TDALista "lista"
 
-const _CAPACIDAD_INICIAL = 127
-const _MAXIMA_CARGA = 20 // esta constante tendria unidad de 10%, osea 9 = 70%
+const _CAPACIDAD_INICIAL = 1000
+const _MAXIMA_CARGA = 15 // esta constante tendria unidad de 10%, osea 9 = 70%
 const ERROR_NO_ESTABA = "La clave no pertenece al diccionario"
 const ERROR_ITERADOR_TERMINO = "El iterador termino de iterar"
 
-func toBytes[K comparable](objeto K) []byte {
-	return []byte(fmt.Sprintf("%v", objeto))
+func toBytes(objeto interface{}) []byte {
+	switch objeto.(type) {
+	case string: // se chequea el tipo para saber cuando se puede usar una forma mas rapida
+		return []byte(reflect.ValueOf(objeto).String())
+	default:
+		return []byte(fmt.Sprintf("%v", objeto)) // lento pero justo
+	}
 }
 
 func _JenkinsHashFunction(bytes []byte) int {
@@ -21,6 +27,10 @@ func _JenkinsHashFunction(bytes []byte) int {
 	}
 
 	return res
+}
+
+func aplicarFuncionHash[K comparable](clave K, maximo int) int{
+	return _JenkinsHashFunction(toBytes(clave)) % maximo
 }
 
 type elementoAbierto[K comparable, V any] struct {
@@ -63,18 +73,32 @@ func (hash *hashAbierto[K, V]) buscarElemento(listaPosicion TDALista.Lista[*elem
 	listaPosicion.Iterar(func(elemento *elementoAbierto[K, V]) bool {
 		if elemento.clave == clave {
 			res = elemento
+			return false
 		}
-		return res == nil
+		return true
 	})
 
 	return res
 }
 
+func (hash *hashAbierto[K, V]) iterarInterno(visitar func(*elementoAbierto[K,V]) bool){
+	i := 0
+	seguir := true
+	for seguir && i < len(hash.elementos) {
+		hash.elementos[i].Iterar(func(elemento *elementoAbierto[K, V]) bool {
+			seguir = visitar(elemento)
+			return seguir
+		})
+
+		i++
+	}
+}
+
 func (hash *hashAbierto[K, V]) redimensionar() {
 	nuevasListas := crearTabla[K, V](2 * len(hash.elementos))
 
-	hash.Iterar(func(clave K, valor V) bool {
-		nuevasListas[_JenkinsHashFunction(toBytes(clave))%len(nuevasListas)].InsertarUltimo(crearElementoAbierto(clave, valor))
+	hash.iterarInterno(func(elemento *elementoAbierto[K, V]) bool {
+		nuevasListas[aplicarFuncionHash(elemento.clave,len(nuevasListas))].InsertarUltimo(elemento)
 		return true
 	})
 
@@ -83,7 +107,7 @@ func (hash *hashAbierto[K, V]) redimensionar() {
 }
 
 func (hash *hashAbierto[K, V]) dameLista(clave K) TDALista.Lista[*elementoAbierto[K, V]] {
-	return hash.elementos[_JenkinsHashFunction(toBytes(clave))%len(hash.elementos)]
+	return hash.elementos[aplicarFuncionHash(clave,len(hash.elementos))]
 }
 
 func (hash *hashAbierto[K, V]) Guardar(clave K, valor V) {
@@ -96,6 +120,7 @@ func (hash *hashAbierto[K, V]) Guardar(clave K, valor V) {
 	hash.cantidad++
 	if hash.superoCargaPermitida() {
 		hash.redimensionar()
+		listaCorrespondiente = hash.dameLista(clave)
 	}
 
 	listaCorrespondiente.InsertarUltimo(crearElementoAbierto(clave, valor))

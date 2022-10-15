@@ -3,11 +3,18 @@ package hash_test
 import (
 	"fmt"
 	"github.com/stretchr/testify/require"
-	HashAbierto "hash/hashCerrado"
-	Hash "hash/hashCerrado2"
-	HashCuckoo "hash/hashCuckoo2"
+	HashAbierto "hash/hashAbierto"
+	aEntregar "hash/aEntregar"
+	HashCuckoo "hash/hashCuckoo"
+
+	HashCerrado3 "hash/hashCerrado3"
+	HashCerrado2 "hash/hashCerrado2"
+	Hash "hash/hashCerrado"
 	"testing"
 	"time"
+	"reflect"
+	"hash/xxh3"
+
 )
 
 type Diccionario[K comparable, V any] interface {
@@ -83,6 +90,19 @@ func ejecutarPruebaVolumen(b *testing.T, n int) {
 	//require.EqualValues(b, 0, dic.Cantidad())
 }
 
+
+
+
+
+
+
+
+
+
+
+
+
+
 func ejecutarPruebaVolumenGenerico[T Diccionario[string, int]](b *testing.T, dic T, n int) {
 	defer func() {
 		if r := recover(); r != nil {
@@ -128,6 +148,67 @@ func ejecutarPruebaVolumenGenerico[T Diccionario[string, int]](b *testing.T, dic
 
 	//require.True(b, ok, "Borrar muchos elementos no funciona correctamente")
 	//require.EqualValues(b, 0, dic.Cantidad())
+}
+
+
+
+func ejecutarPruebaVolumenGenericoStepped[T Diccionario[string, int]](b *testing.T, dic T, n int) (guardar,buscar,borrar int64){
+	defer func() {
+		if r := recover(); r != nil {
+			b.Log("ERROR :: ", r)
+		}
+	}()
+	claves := make([]string, n)
+	valores := make([]int, n)
+
+	for i := 0; i < n; i++ {
+		valores[i] = i
+		claves[i] = fmt.Sprintf("%08d", i)
+	}
+
+	init := time.Now()
+	/* Inserta 'n' parejas en el hash */
+
+	for i := 0; i < n; i++ {
+		dic.Guardar(claves[i], valores[i])
+	}
+	
+	guardar = int64(time.Since(init))
+	//b.Log(fmt.Sprintf("AFTER ADDING CANTIDAD = %d",dic.Cantidad()))
+	//require.EqualValues(b, n, dic.Cantidad(), "La cantidad de elementos es incorrecta")
+	init = time.Now()
+
+	/* Verifica que devuelva los valores correctos */
+	ok := true
+	for i := 0; i < n; i++ {
+		ok = dic.Pertenece(claves[i])
+		if !ok {
+			break
+		}
+		ok = dic.Obtener(claves[i]) == valores[i]
+		if !ok {
+			break
+		}
+	}
+	buscar = int64(time.Since(init))
+
+	//require.True(b, ok, "Pertenece y Obtener con muchos elementos no funciona correctamente")
+	//require.EqualValues(b, n, dic.Cantidad(), "La cantidad de elementos es incorrecta")
+
+	init = time.Now()
+	/* Verifica que borre y devuelva los valores correctos */
+	for i := 0; i < n; i++ {
+		ok = dic.Borrar(claves[i]) == valores[i]
+		if !ok {
+			break
+		}
+	}
+	borrar = int64(time.Since(init))
+	//b.Log(fmt.Sprintf("AFTER DELETING CANTIDAD = %d",dic.Cantidad()))
+
+	//require.True(b, ok, "Borrar muchos elementos no funciona correctamente")
+	//require.EqualValues(b, 0, dic.Cantidad())
+	return 
 }
 
 func ejecutarPruebasVolumenIterador(b *testing.T, n int) {
@@ -187,6 +268,7 @@ func ejecutarPruebasVolumenIterador(b *testing.T, n int) {
 	require.True(b, ok, "No se cambiaron todos los elementos")
 }
 
+/*
 func TestAgregado(t *testing.T) {
 	hash := Hash.CrearHash[string, int]()
 
@@ -211,7 +293,7 @@ func TestPertenece(t *testing.T) {
 	require.EqualValues(t, 3, hash.Cantidad(), "Cantidad incorrecta")
 
 	require.False(t, hash.Pertenece("O"), "Se invento una clave 'O'")
-	require.False(t, hash.Pertenece(""), "Se invento una clave ''")
+	//require.False(t, hash.Pertenece(""), "Se invento una clave ''")
 	require.False(t, hash.Pertenece("Makise"), "Se invento una clave 'Makise'")
 
 	require.True(t, hash.Pertenece("Uno"), "Se olvido de la clave 'Uno'")
@@ -303,78 +385,155 @@ func TestIteradorExterno(t *testing.T) {
 	require.EqualValues(t, 3, i, "No mostro la cantidad correcta el iterador externo?")
 
 }
+*/
+
+func _JenkinsHashFunction(bytes []byte) uint64 {
+	var res uint64 = 0
+	for i := 0; i < len(bytes); i++ {
+		res += uint64(bytes[i])
+		res += res << 10
+		res ^= res >> 6
+	}
+
+	return res
+}
+func TestHashFunctions(t *testing.T){
+	testHashingFunctions(t,"xxh3 hash reflect",func(clave string) uint64 { return xxh3.Hash(toBytes2(clave))})
+	testHashingFunctions(t,"xxh3 hash direct",func(clave string) uint64 { return xxh3.Hash([]byte(clave))})
+	testHashingFunctions(t,"Jenkins direct",func(clave string) uint64 { return _JenkinsHashFunction([]byte(clave))})
+	testHashingFunctions(t,"Jenkins reflect",func(clave string) uint64 { return _JenkinsHashFunction(toBytes2(clave))})
+	testHashingFunctions(t,"creatividad directo",func(clave string) uint64 { return creatividad2([]byte(clave))})
+	testHashingFunctions(t,"creatividad reflect",func(clave string) uint64 { return creatividad2(toBytes2(clave))})
+}
+
+func toBytes3(objeto interface{}) []byte {
+	return []byte(reflect.ValueOf(objeto).String())
+}
+func toBytes2(objeto interface{}) []byte {
+	switch objeto.(type) {
+	case string: // se chequea el tipo para saber cuando se puede usar una forma mas rapida
+		return []byte(reflect.ValueOf(objeto).String())
+	default:
+		return []byte(fmt.Sprintf("%v", objeto)) // lento pero justo
+	}
+}
+
+
+func creatividad2(bytes []byte) uint64 {
+	if len(bytes) == 0 {
+		return 0
+	}
+	i := 0
+	i2 := len(bytes) - 1
+	var res uint64 = (uint64(bytes[0]<<1|bytes[i2]>>1) + uint64(bytes[i2]>>1))
+	res ^= res << 6
+	res ^= res >> 3
+	i++
+	i2--
+	for i < 3 && i < i2 {
+		res += (uint64(bytes[i]<<1|bytes[i2]>>1) + uint64(bytes[i2]>>1))
+		res = (res ^ (res << 6)) ^ (res >> 3)
+		i++
+		i2--
+	}
+
+	return res
+}
+
+func testHashingFunctions(t *testing.T,label string,hashFunc func(string) uint64){
+	const millisecond int64 = 1000000
+	const iteraciones int64 = 80000 * 5
+	const maximo uint64 = 800000
+	posiciones := make([]bool,800000)
+	colisiones := 0
+	started := time.Now()
+	var indice uint64=0
+	var i int64= 0
+	for i= 0; i<iteraciones;i++{
+		indice = hashFunc(fmt.Sprintf("%08d", i)) % maximo
+		if(posiciones[indice]){
+			colisiones++
+		} else{
+			posiciones[indice] = true
+		}
+	}
+
+	ms := (int64(time.Since(started)) / (millisecond))
+	t.Log(fmt.Sprintf("Tomo %dms, pruebas con '%s', %d claves, hubo %d colisiones", ms,label, iteraciones,colisiones))
+}
+
+
+
+
+
+func testVolumenPara(t *testing.T,tipo string,provider func() Diccionario[string, int]){
+	n := 400000
+	const iteraciones int64 = 2
+	const millisecond int64 = 1000000
+
+	init := time.Now()
+	var i int64= 0
+	for i < iteraciones {
+		ejecutarPruebaVolumenGenerico(t, provider(), n)
+		i++
+	}
+
+	ms := (int64(time.Since(init)) / (millisecond * iteraciones))
+	t.Log(fmt.Sprintf("Tomo en promedio %dms, pruebas con '%s', %d elementos %d veces", ms,tipo, n, iteraciones))
+
+}
+
+
+func testVolumenSteppedPara(t *testing.T,n int, iteraciones int64,tipo string,provider func() Diccionario[string, int]){
+	const millisecond int64 = 1000000
+	total_guardar,total_buscar,total_borrar := ejecutarPruebaVolumenGenericoStepped(t, provider(), n)
+	var i int64= 1
+	for i < iteraciones {
+		guardar,buscar,borrar := ejecutarPruebaVolumenGenericoStepped(t, provider(), n)
+		total_guardar+=guardar
+		total_buscar+=buscar
+		total_borrar+=borrar
+		i++
+	}
+
+	total_guardar/= (millisecond * iteraciones)
+	total_buscar/= (millisecond * iteraciones)
+	total_borrar/= (millisecond * iteraciones)  
+
+	t.Log(fmt.Sprintf("%dms %dms %dms promedio con '%s' para guardar,buscar y borrar", total_guardar,total_buscar,total_borrar,tipo))
+
+}
+
+
 
 func TestVolumen(t *testing.T) {
 	n := 400000
-	var iteraciones int64 = 20
-	var milisecond int64 = 1000000 //000
-	init := time.Now()
-	var i int64 = 0
-	for i < iteraciones {
-		ejecutarPruebaVolumenGenerico(t, Hash.CrearHash[string, int](), n)
-		i++
-	}
-	t.Log(fmt.Sprintf("Tomo en promedio %dms, pruebas con hash cerrado 2, %d elementos %d veces", (int64(time.Since(init)) / (milisecond * iteraciones)), n, iteraciones))
+	const iteraciones int64 = 20
 
-	init = time.Now()
-	i = 0
-	for i < iteraciones {
-		ejecutarPruebaVolumenGenerico(t, HashAbierto.CrearHash[string, int](), n)
-		i++
-	}
-	t.Log(fmt.Sprintf("Tomo en promedio %dms, pruebas con hash cerrado , %d elementos %d veces", (int64(time.Since(init)) / (milisecond * iteraciones)), n, iteraciones))
+	t.Log(fmt.Sprintf("pruebas de %d elementos %d veces",n, iteraciones))
 
-	init = time.Now()
-	ejecutarPruebaVolumenGenerico(t, HashCuckoo.CrearHash[string, int](), n)
-	t.Log(fmt.Sprintf("Pruebas con hash cuckoo, %d elementos Tomo %s", n, time.Since(init)))
+	
 
+	
+	testVolumenSteppedPara(t,n,iteraciones, "Hash cerrado sin redim borrar", 
+		func() Diccionario[string, int] {return HashCerrado2.CrearHash[string,int]()})
+	
+	testVolumenSteppedPara(t,n,iteraciones, "Hash cerrado ints based", 
+		func() Diccionario[string, int] {return Hash.CrearHash[string,int]()})
+	
+	testVolumenSteppedPara(t,n,iteraciones, "Hash cerrado punteros", 
+		func() Diccionario[string, int] {return HashCerrado3.CrearHash[string,int]()})
+	
+	testVolumenSteppedPara(t,n,iteraciones, "Hash a aEntregar", 
+		func() Diccionario[string, int] {return aEntregar.CrearHash[string,int]()})
+
+	testVolumenSteppedPara(t,n,2, "Hash abierto", 
+		func() Diccionario[string, int] {return HashAbierto.CrearHash[string,int]()})
+
+	testVolumenSteppedPara(t,n,2, "Hash cuckoo", 
+		func() Diccionario[string, int] {return HashCuckoo.CrearHash[string,int]()})
 	//ejecutarPruebasVolumenIterador(t,n)
 }
 
-func BenchmarkIterador(b *testing.B) {
-	b.Log("ESTA HACIENDO EL TEST?")
-	n := 12500
 
-	b.Run(fmt.Sprintf("Prueba %d elementos", n+8), func(b *testing.B) {
-		hash := Hash.CrearHash[string, int]()
-		hash.Guardar("Uno", 1)
-		hash.Guardar("Dos", 2)
-		hash.Guardar("Tres", 3)
-		hash.Guardar("Makise", 10)
-		hash.Guardar("Inaba", 9)
-		hash.Guardar("Misaka", 9)
-		hash.Guardar("Miu", 9)
-		hash.Guardar("Marcelo", 9)
-		i := 0
-		keys := make([]string, n)
-		values := make([]int, n)
-		defer func() {
-			if r := recover(); r != nil {
-				b.Log(fmt.Sprintf("Err:%s ... key = %s, value = %d", r, keys[i], values[i]))
-			}
-		}()
 
-		for i < n {
-			keys[i] = fmt.Sprintf("%08d", i)
-			values[i] = i + 1
-			hash.Guardar(keys[i], i)
-			hash.Guardar(keys[i], i+1)
-			i++
-		}
-
-		i = 0
-		res := 0
-		for i < n {
-			if !hash.Pertenece(keys[i]) {
-				panic("NO PERTENECIA???")
-			}
-			res = hash.Obtener(keys[i])
-			if res != values[i] {
-				panic(fmt.Sprintf("Que te inventas???? no es %d", res))
-			}
-
-			i++
-		}
-
-	})
-}

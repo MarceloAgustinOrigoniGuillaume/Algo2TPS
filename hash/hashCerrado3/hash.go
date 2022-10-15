@@ -2,20 +2,15 @@ package diccionario
 
 import "reflect"
 import "fmt"
-//import "hash/xxh3"
+import "hash/xxh3"
 
 // constants
 type status = int
 
-// _CAPACIDAD_INICIAL , redimensionar *2
-// 10 * _TARGET< _MAXIMA_CARGA*_CAPACIDAD_INICIAL*2k
-// 
-
-
 const (
 	_CAPACIDAD_INICIAL            = 128
-	_MAXIMA_CARGA                 = 80 // esta constante tendria unidad de 1%, osea 80 = 80%
-	_MINIMA_CARGA                 = 5 // esta constante tendria unidad de 10%, osea 1 = 10%
+	_MAXIMA_CARGA                 = 80 // esta constante tendria unidad de 10%, osea 4 = 40%
+	_MINIMA_CARGA                 = 5// esta constante tendria unidad de 10%, osea 1 = 10%
 	ERROR_NO_ESTABA               = "La clave no pertenece al diccionario"
 	ERROR_ITERADOR_TERMINO        = "El iterador termino de iterar"
 	_VACIO                 status = 0
@@ -46,9 +41,13 @@ func _JenkinsHashFunction(bytes []byte) int {
 }
 
 
+func hasheame(bytes []byte, max int) int {
+	return int(xxh3.Hash(bytes) % uint64(max))
+}
+
 func aplicaFuncionDeHash[K comparable](clave K, maximo int) int { // paso intermedio para hacer mas facil cambios
-	//return int(xxh3.Hash(toBytes(clave)) % uint64(max))
-	return _JenkinsHashFunction(toBytes(clave)) % maximo
+	return hasheame(toBytes(clave),maximo)
+	//return _JenkinsHashFunction(toBytes(clave)) % maximo
 }
 
 type elementoCerrado[K comparable, V any] struct {
@@ -61,6 +60,8 @@ func (elemento *elementoCerrado[K, V]) modificar(clave K, valor V,estado status)
 		elemento.clave = clave
 		elemento.valor = valor
 		elemento.estado = estado
+
+
 }
 
 func crearElementoCerrado[K comparable, V any](clave K, valor V) elementoCerrado[K, V] {
@@ -91,57 +92,6 @@ func CrearHash[K comparable, V any]() Diccionario[K, V] {
 	return hash
 }
 
-// las unidades serian de 1%, aca lo que se haria es comparar el 100% de la cantidad con el (_MAXIMA_CARGA)% de la longitud(80%)
-func (hash *hashCerrado[K, V]) superoCargaPermitida() bool {
-	return 100*(hash.cantidad+hash.borrados) >= len(hash.elementos)*_MAXIMA_CARGA
-}
-
-func (hash *hashCerrado[K, V]) ocupaMuchaMemoria() bool {
-	return len(hash.elementos)>= 2*_CAPACIDAD_INICIAL && 100*hash.cantidad <= len(hash.elementos)*_MINIMA_CARGA
-}
-
-func iterarPosicionCerrado[K comparable, V any](elementos []elementoCerrado[K, V], clave K, continuar func(int) bool){
-	posInicial:= aplicaFuncionDeHash(clave, len(elementos))
-
-	i := posInicial 
-	for (i < len(elementos) && continuar(i)){
-		i++
-	}
-	if i < len(elementos){
-		return
-	}
-
-	i = 0
-	for ( i < posInicial && continuar(i)) {
-		i++
-	}
-
-}
-
-func buscarElementoAModificar[K comparable, V any](elementos []elementoCerrado[K, V], clave K) int{
-	indiceRes:= -1
-	iterarPosicionCerrado(elementos,clave, func(indice int) bool {
-			if elementos[indice].estado != _OCUPADO || elementos[indice].clave == clave {
-				indiceRes = indice
-				return false
-			}
-			return true
-		})
-	return indiceRes
-}
-
-func (hash *hashCerrado[K, V]) buscarPosicion(clave K) int{
-	indiceRes:= -1
-	iterarPosicionCerrado(hash.elementos,clave, func(indice int) bool {
-			if hash.elementos[indice].clave == clave {				
-				indiceRes = indice
-				return false
-			}
-			return hash.elementos[indice].estado != _VACIO
-		})
-	return indiceRes
-}
-
 
 func (hash *hashCerrado[K, V]) iterarInterno(visitar func(*elementoCerrado[K,V]) bool) {
 	i := 0
@@ -150,13 +100,62 @@ func (hash *hashCerrado[K, V]) iterarInterno(visitar func(*elementoCerrado[K,V])
 	}
 }
 
+// las unidades serian de 10%, aca lo que se haria es comparar el 100% de la cantidad con el (_MAXIMA_CARGA*10)% de la longitud(40%)
+func (hash *hashCerrado[K, V]) superoCargaPermitida() bool {
+	return 100*(hash.cantidad+hash.borrados) >= len(hash.elementos)*_MAXIMA_CARGA
+}
+
+func (hash *hashCerrado[K, V]) ocupaMuchaMemoria() bool {
+	return len(hash.elementos)>= 2*_CAPACIDAD_INICIAL && 100*hash.cantidad <= len(hash.elementos)*_MINIMA_CARGA
+}
+
+func iterarPosicionCerrado[K comparable, V any](elementos []elementoCerrado[K, V], clave K, continuar func(*elementoCerrado[K,V]) bool){
+	posInicial:= aplicaFuncionDeHash(clave, len(elementos))
+
+	i := posInicial 
+	for (i < len(elementos) && continuar(&elementos[i])){
+		i++
+	}
+	if i < len(elementos){
+		return
+	}
+
+	i = 0
+	for ( i < posInicial && continuar(&elementos[i])) {
+		i++
+	}
+
+}
+
+func buscarElementoAModificar[K comparable, V any](elementos []elementoCerrado[K, V], clave K) *elementoCerrado[K,V]{
+	var aDevolver *elementoCerrado[K,V] = nil
+	iterarPosicionCerrado(elementos,clave, func(elemento *elementoCerrado[K,V]) bool {
+			if elemento.estado != _OCUPADO || elemento.clave == clave {				
+				aDevolver = elemento
+				return false
+			}
+			return true
+		})
+	return aDevolver
+}
+
+func (hash *hashCerrado[K, V]) buscarPosicion(clave K) *elementoCerrado[K,V]{
+	var aDevolver *elementoCerrado[K,V] = nil
+	iterarPosicionCerrado(hash.elementos,clave, func(elemento *elementoCerrado[K,V]) bool {
+			if elemento.clave == clave {				
+				aDevolver = elemento
+				return false
+			}
+			return elemento.estado != _VACIO
+		})
+	return aDevolver
+}
 
 func (hash *hashCerrado[K, V]) redimensionar(nuevoLargo int) {
 	nuevos := crearTabla[K, V](nuevoLargo)
 	hash.borrados = 0
-
 	hash.iterarInterno(func (elemento *elementoCerrado[K,V]) bool{ 
-		nuevos[buscarElementoAModificar(nuevos,elemento.clave)] = *elemento
+		*buscarElementoAModificar(nuevos,elemento.clave) = *elemento
 		return true
 	})
 
@@ -166,50 +165,49 @@ func (hash *hashCerrado[K, V]) redimensionar(nuevoLargo int) {
 
 func (hash *hashCerrado[K, V]) Guardar(clave K, valor V) {
 	if hash.superoCargaPermitida() {
-		hash.redimensionar(4*len(hash.elementos))
+		hash.redimensionar(2*len(hash.elementos))
 	}
-	indice := buscarElementoAModificar(hash.elementos,clave)
 
-	if hash.elementos[indice].estado != _OCUPADO{
+	aModificar := buscarElementoAModificar(hash.elementos,clave)
+	if aModificar.estado != _OCUPADO{
 		hash.cantidad++
-		if(hash.elementos[indice].estado == _BORRADO){
+		if(aModificar.estado == _BORRADO){
 			hash.borrados--
 		}
 	}
 
-	hash.elementos[indice] = crearElementoCerrado(clave,valor)
+	aModificar.modificar(clave,valor,_OCUPADO)
 }
 
 func (hash *hashCerrado[K, V]) Pertenece(clave K) bool {
-	return hash.buscarPosicion(clave) != -1
+	return hash.buscarPosicion(clave) != nil
 }
 
 func (hash *hashCerrado[K, V]) Obtener(clave K) V {
-	indice := hash.buscarPosicion(clave)
-	if indice == -1 {
+	elemento := hash.buscarPosicion(clave)
+	if elemento == nil {
 		panic(ERROR_NO_ESTABA)
 	}
-	return hash.elementos[indice].valor
+	return elemento.valor
 }
 
 func (hash *hashCerrado[K, V]) Borrar(clave K) V {
-	indice := hash.buscarPosicion(clave)
+	elemento := hash.buscarPosicion(clave)
 
-	if indice == -1 {
+	if elemento == nil {
 		panic(ERROR_NO_ESTABA)
 	}
 
-	elem := hash.elementos[indice].valor
+	elem := elemento.valor
 	hash.cantidad--
-	hash.elementos[indice] = crearElementoCerradoVacio[K, V]()
-	hash.elementos[indice].estado = _BORRADO
+	*elemento = crearElementoCerradoVacio[K, V]()
+	elemento.estado = _BORRADO
 	hash.borrados++
 
 	
 	if(hash.ocupaMuchaMemoria()){
 		hash.redimensionar(len(hash.elementos)/2)
 	}
-
 
 	return elem
 }
@@ -219,10 +217,7 @@ func (hash *hashCerrado[K, V]) Cantidad() int {
 }
 
 func (hash *hashCerrado[K, V]) Iterar(visitar func(clave K, dato V) bool) {
-	i := 0
-	for i < len(hash.elementos) && (hash.elementos[i].estado != _OCUPADO || visitar(hash.elementos[i].clave,hash.elementos[i].valor)) {
-		i++
-	}
+	hash.iterarInterno(func (elemento *elementoCerrado[K,V]) bool { return visitar(elemento.clave,elemento.valor) })
 }
 
 // Iterador externo
