@@ -205,8 +205,7 @@ func hashAny(s GeneralBytes) (acc u64) {
 	}
 }
 
-
-func Casteame[T any](elemento any) T{
+func Casteame[T any](elemento any) T {
 	return *(*T)(ptr(&elemento))
 }
 
@@ -230,4 +229,3 @@ func HashShort(b []byte) uint64 {
 	return hashAny(*(*GeneralBytes)(ptr(&b)))
 
 }
-

@@ -3,18 +3,17 @@ package hash_test
 import (
 	"fmt"
 	"github.com/stretchr/testify/require"
-	HashAbierto "hash/hashAbierto"
 	aEntregar "hash/aEntregar"
+	HashAbierto "hash/hashAbierto"
 	HashCuckoo "hash/hashCuckoo"
 
-	HashCerrado3 "hash/hashCerrado3"
-	HashCerrado2 "hash/hashCerrado2"
 	Hash "hash/hashCerrado"
+	HashCerrado2 "hash/hashCerrado2"
+	HashCerrado3 "hash/hashCerrado3"
+	"hash/xxh3"
+	"reflect"
 	"testing"
 	"time"
-	"reflect"
-	"hash/xxh3"
-
 )
 
 type Diccionario[K comparable, V any] interface {
@@ -90,19 +89,6 @@ func ejecutarPruebaVolumen(b *testing.T, n int) {
 	//require.EqualValues(b, 0, dic.Cantidad())
 }
 
-
-
-
-
-
-
-
-
-
-
-
-
-
 func ejecutarPruebaVolumenGenerico[T Diccionario[string, int]](b *testing.T, dic T, n int) {
 	defer func() {
 		if r := recover(); r != nil {
@@ -150,9 +136,7 @@ func ejecutarPruebaVolumenGenerico[T Diccionario[string, int]](b *testing.T, dic
 	//require.EqualValues(b, 0, dic.Cantidad())
 }
 
-
-
-func ejecutarPruebaVolumenGenericoStepped[T Diccionario[string, int]](b *testing.T, dic T, n int) (guardar,buscar,borrar int64){
+func ejecutarPruebaVolumenGenericoStepped[T Diccionario[string, int]](b *testing.T, dic T, n int) (guardar, buscar, borrar int64) {
 	defer func() {
 		if r := recover(); r != nil {
 			b.Log("ERROR :: ", r)
@@ -172,7 +156,7 @@ func ejecutarPruebaVolumenGenericoStepped[T Diccionario[string, int]](b *testing
 	for i := 0; i < n; i++ {
 		dic.Guardar(claves[i], valores[i])
 	}
-	
+
 	guardar = int64(time.Since(init))
 	//b.Log(fmt.Sprintf("AFTER ADDING CANTIDAD = %d",dic.Cantidad()))
 	//require.EqualValues(b, n, dic.Cantidad(), "La cantidad de elementos es incorrecta")
@@ -208,7 +192,7 @@ func ejecutarPruebaVolumenGenericoStepped[T Diccionario[string, int]](b *testing
 
 	//require.True(b, ok, "Borrar muchos elementos no funciona correctamente")
 	//require.EqualValues(b, 0, dic.Cantidad())
-	return 
+	return
 }
 
 func ejecutarPruebasVolumenIterador(b *testing.T, n int) {
@@ -397,13 +381,13 @@ func _JenkinsHashFunction(bytes []byte) uint64 {
 
 	return res
 }
-func TestHashFunctions(t *testing.T){
-	testHashingFunctions(t,"xxh3 hash reflect",func(clave string) uint64 { return xxh3.Hash(toBytes2(clave))})
-	testHashingFunctions(t,"xxh3 hash direct",func(clave string) uint64 { return xxh3.Hash([]byte(clave))})
-	testHashingFunctions(t,"Jenkins direct",func(clave string) uint64 { return _JenkinsHashFunction([]byte(clave))})
-	testHashingFunctions(t,"Jenkins reflect",func(clave string) uint64 { return _JenkinsHashFunction(toBytes2(clave))})
-	testHashingFunctions(t,"creatividad directo",func(clave string) uint64 { return creatividad2([]byte(clave))})
-	testHashingFunctions(t,"creatividad reflect",func(clave string) uint64 { return creatividad2(toBytes2(clave))})
+func TestHashFunctions(t *testing.T) {
+	testHashingFunctions(t, "xxh3 hash reflect", func(clave string) uint64 { return xxh3.Hash(toBytes2(clave)) })
+	testHashingFunctions(t, "xxh3 hash direct", func(clave string) uint64 { return xxh3.Hash([]byte(clave)) })
+	testHashingFunctions(t, "Jenkins direct", func(clave string) uint64 { return _JenkinsHashFunction([]byte(clave)) })
+	testHashingFunctions(t, "Jenkins reflect", func(clave string) uint64 { return _JenkinsHashFunction(toBytes2(clave)) })
+	testHashingFunctions(t, "creatividad directo", func(clave string) uint64 { return creatividad2([]byte(clave)) })
+	testHashingFunctions(t, "creatividad reflect", func(clave string) uint64 { return creatividad2(toBytes2(clave)) })
 }
 
 func toBytes3(objeto interface{}) []byte {
@@ -417,7 +401,6 @@ func toBytes2(objeto interface{}) []byte {
 		return []byte(fmt.Sprintf("%v", objeto)) // lento pero justo
 	}
 }
-
 
 func creatividad2(bytes []byte) uint64 {
 	if len(bytes) == 0 {
@@ -440,100 +423,87 @@ func creatividad2(bytes []byte) uint64 {
 	return res
 }
 
-func testHashingFunctions(t *testing.T,label string,hashFunc func(string) uint64){
+func testHashingFunctions(t *testing.T, label string, hashFunc func(string) uint64) {
 	const millisecond int64 = 1000000
 	const iteraciones int64 = 80000 * 5
 	const maximo uint64 = 800000
-	posiciones := make([]bool,800000)
+	posiciones := make([]bool, 800000)
 	colisiones := 0
 	started := time.Now()
-	var indice uint64=0
-	var i int64= 0
-	for i= 0; i<iteraciones;i++{
+	var indice uint64 = 0
+	var i int64 = 0
+	for i = 0; i < iteraciones; i++ {
 		indice = hashFunc(fmt.Sprintf("%08d", i)) % maximo
-		if(posiciones[indice]){
+		if posiciones[indice] {
 			colisiones++
-		} else{
+		} else {
 			posiciones[indice] = true
 		}
 	}
 
 	ms := (int64(time.Since(started)) / (millisecond))
-	t.Log(fmt.Sprintf("Tomo %dms, pruebas con '%s', %d claves, hubo %d colisiones", ms,label, iteraciones,colisiones))
+	t.Log(fmt.Sprintf("Tomo %dms, pruebas con '%s', %d claves, hubo %d colisiones", ms, label, iteraciones, colisiones))
 }
 
-
-
-
-
-func testVolumenPara(t *testing.T,tipo string,provider func() Diccionario[string, int]){
+func testVolumenPara(t *testing.T, tipo string, provider func() Diccionario[string, int]) {
 	n := 400000
 	const iteraciones int64 = 2
 	const millisecond int64 = 1000000
 
 	init := time.Now()
-	var i int64= 0
+	var i int64 = 0
 	for i < iteraciones {
 		ejecutarPruebaVolumenGenerico(t, provider(), n)
 		i++
 	}
 
 	ms := (int64(time.Since(init)) / (millisecond * iteraciones))
-	t.Log(fmt.Sprintf("Tomo en promedio %dms, pruebas con '%s', %d elementos %d veces", ms,tipo, n, iteraciones))
+	t.Log(fmt.Sprintf("Tomo en promedio %dms, pruebas con '%s', %d elementos %d veces", ms, tipo, n, iteraciones))
 
 }
 
-
-func testVolumenSteppedPara(t *testing.T,n int, iteraciones int64,tipo string,provider func() Diccionario[string, int]){
+func testVolumenSteppedPara(t *testing.T, n int, iteraciones int64, tipo string, provider func() Diccionario[string, int]) {
 	const millisecond int64 = 1000000
-	total_guardar,total_buscar,total_borrar := ejecutarPruebaVolumenGenericoStepped(t, provider(), n)
-	var i int64= 1
+	total_guardar, total_buscar, total_borrar := ejecutarPruebaVolumenGenericoStepped(t, provider(), n)
+	var i int64 = 1
 	for i < iteraciones {
-		guardar,buscar,borrar := ejecutarPruebaVolumenGenericoStepped(t, provider(), n)
-		total_guardar+=guardar
-		total_buscar+=buscar
-		total_borrar+=borrar
+		guardar, buscar, borrar := ejecutarPruebaVolumenGenericoStepped(t, provider(), n)
+		total_guardar += guardar
+		total_buscar += buscar
+		total_borrar += borrar
 		i++
 	}
 
-	total_guardar/= (millisecond * iteraciones)
-	total_buscar/= (millisecond * iteraciones)
-	total_borrar/= (millisecond * iteraciones)  
+	total_guardar /= (millisecond * iteraciones)
+	total_buscar /= (millisecond * iteraciones)
+	total_borrar /= (millisecond * iteraciones)
 
-	t.Log(fmt.Sprintf("%dms %dms %dms promedio con '%s' para guardar,buscar y borrar", total_guardar,total_buscar,total_borrar,tipo))
+	t.Log(fmt.Sprintf("%dms %dms %dms promedio con '%s' para guardar,buscar y borrar", total_guardar, total_buscar, total_borrar, tipo))
 
 }
-
-
 
 func TestVolumen(t *testing.T) {
 	n := 400000
 	const iteraciones int64 = 20
 
-	t.Log(fmt.Sprintf("pruebas de %d elementos %d veces",n, iteraciones))
+	t.Log(fmt.Sprintf("pruebas de %d elementos %d veces", n, iteraciones))
 
-	
+	testVolumenSteppedPara(t, n, iteraciones, "Hash cerrado sin redim borrar",
+		func() Diccionario[string, int] { return HashCerrado2.CrearHash[string, int]() })
 
-	
-	testVolumenSteppedPara(t,n,iteraciones, "Hash cerrado sin redim borrar", 
-		func() Diccionario[string, int] {return HashCerrado2.CrearHash[string,int]()})
-	
-	testVolumenSteppedPara(t,n,iteraciones, "Hash cerrado ints based", 
-		func() Diccionario[string, int] {return Hash.CrearHash[string,int]()})
-	
-	testVolumenSteppedPara(t,n,iteraciones, "Hash cerrado punteros", 
-		func() Diccionario[string, int] {return HashCerrado3.CrearHash[string,int]()})
-	
-	testVolumenSteppedPara(t,n,iteraciones, "Hash a aEntregar", 
-		func() Diccionario[string, int] {return aEntregar.CrearHash[string,int]()})
+	testVolumenSteppedPara(t, n, iteraciones, "Hash cerrado ints based",
+		func() Diccionario[string, int] { return Hash.CrearHash[string, int]() })
 
-	testVolumenSteppedPara(t,n,2, "Hash abierto", 
-		func() Diccionario[string, int] {return HashAbierto.CrearHash[string,int]()})
+	testVolumenSteppedPara(t, n, iteraciones, "Hash cerrado punteros",
+		func() Diccionario[string, int] { return HashCerrado3.CrearHash[string, int]() })
 
-	testVolumenSteppedPara(t,n,2, "Hash cuckoo", 
-		func() Diccionario[string, int] {return HashCuckoo.CrearHash[string,int]()})
+	testVolumenSteppedPara(t, n, iteraciones, "Hash a aEntregar",
+		func() Diccionario[string, int] { return aEntregar.CrearHash[string, int]() })
+
+	testVolumenSteppedPara(t, n, 2, "Hash abierto",
+		func() Diccionario[string, int] { return HashAbierto.CrearHash[string, int]() })
+
+	testVolumenSteppedPara(t, n, 2, "Hash cuckoo",
+		func() Diccionario[string, int] { return HashCuckoo.CrearHash[string, int]() })
 	//ejecutarPruebasVolumenIterador(t,n)
 }
-
-
-

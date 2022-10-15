@@ -29,7 +29,7 @@ func _JenkinsHashFunction(bytes []byte) int {
 	return res
 }
 
-func aplicarFuncionHash[K comparable](clave K, maximo int) int{
+func aplicarFuncionHash[K comparable](clave K, maximo int) int {
 	return _JenkinsHashFunction(toBytes(clave)) % maximo
 }
 
@@ -81,7 +81,7 @@ func (hash *hashAbierto[K, V]) buscarElemento(listaPosicion TDALista.Lista[*elem
 	return res
 }
 
-func (hash *hashAbierto[K, V]) iterarInterno(visitar func(*elementoAbierto[K,V]) bool){
+func (hash *hashAbierto[K, V]) iterarInterno(visitar func(*elementoAbierto[K, V]) bool) {
 	i := 0
 	seguir := true
 	for seguir && i < len(hash.elementos) {
@@ -98,7 +98,7 @@ func (hash *hashAbierto[K, V]) redimensionar() {
 	nuevasListas := crearTabla[K, V](2 * len(hash.elementos))
 
 	hash.iterarInterno(func(elemento *elementoAbierto[K, V]) bool {
-		nuevasListas[aplicarFuncionHash(elemento.clave,len(nuevasListas))].InsertarUltimo(elemento)
+		nuevasListas[aplicarFuncionHash(elemento.clave, len(nuevasListas))].InsertarUltimo(elemento)
 		return true
 	})
 
@@ -107,7 +107,7 @@ func (hash *hashAbierto[K, V]) redimensionar() {
 }
 
 func (hash *hashAbierto[K, V]) dameLista(clave K) TDALista.Lista[*elementoAbierto[K, V]] {
-	return hash.elementos[aplicarFuncionHash(clave,len(hash.elementos))]
+	return hash.elementos[aplicarFuncionHash(clave, len(hash.elementos))]
 }
 
 func (hash *hashAbierto[K, V]) Guardar(clave K, valor V) {
