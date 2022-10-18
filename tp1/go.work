@@ -2,8 +2,8 @@ go 1.19
 
 use (
 	.
-	./cola
-	./lista
-	./pila
+	../cola
+	../lista
+	../pila
 	./sesion_votar
 )

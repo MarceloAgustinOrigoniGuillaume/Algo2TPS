@@ -3,11 +3,11 @@ package hash_test
 import (
 	"fmt"
 	"github.com/stretchr/testify/require"
-	aEntregar "hash/aEntregar"
+	aEntregar "hash/hashCerrado"
 	HashAbierto "hash/hashAbierto"
 	HashCuckoo "hash/hashCuckoo"
 
-	Hash "hash/hashCerrado"
+	Hash "hash/aEntregar"
 	HashCerrado3 "hash/hashCerrado3"
 	"hash/xxh3"
 	"reflect"
@@ -385,15 +385,22 @@ func _JenkinsHashFunction(bytes []byte) uint64 {
 }
 func TestHashFunctions(t *testing.T) {
 	testHashingFunctions(t, "xxh3 hash reflect", func(clave string) uint64 { return xxh3.Hash(toBytes2(clave)) })
-	testHashingFunctions(t, "xxh3 hash direct", func(clave string) uint64 { return xxh3.Hash([]byte(clave)) })
-	testHashingFunctions(t, "Jenkins direct", func(clave string) uint64 { return _JenkinsHashFunction([]byte(clave)) })
+	testHashingFunctions(t, "xxh3 hash fmt pure", func(clave string) uint64 { return xxh3.Hash(toBytes3(clave)) })
+	testHashingFunctions(t, "xxh3 hash max speed", func(clave string) uint64 { return xxh3.Hash([]byte(clave)) })
+	testHashingFunctions(t, "xxh3 hash fmt pure", func(clave string) uint64 { return _JenkinsHashFunction(toBytes3(clave)) })
+	testHashingFunctions(t, "Jenkins max speed", func(clave string) uint64 { return _JenkinsHashFunction([]byte(clave)) })
 	testHashingFunctions(t, "Jenkins reflect", func(clave string) uint64 { return _JenkinsHashFunction(toBytes2(clave)) })
 	testHashingFunctions(t, "creatividad directo", func(clave string) uint64 { return creatividad2([]byte(clave)) })
 	testHashingFunctions(t, "creatividad reflect", func(clave string) uint64 { return creatividad2(toBytes2(clave)) })
 }
 
 func toBytes3(objeto interface{}) []byte {
-	return []byte(reflect.ValueOf(objeto).String())
+	switch objeto.(type) {
+	case string: // se chequea el tipo para saber cuando se puede usar una forma mas rapida
+		return []byte(fmt.Sprintf("%s", objeto))
+	default:
+		return []byte(fmt.Sprintf("%v", objeto)) // lento pero justo
+	}
 }
 func toBytes2(objeto interface{}) []byte {
 	switch objeto.(type) {
@@ -491,13 +498,13 @@ func TestVolumen(t *testing.T) {
 	t.Log(fmt.Sprintf("pruebas de %d elementos %d veces", n, iteraciones))
 
 
-	testVolumenSteppedPara(t, n, iteraciones, "Hash cerrado ints based",
+	testVolumenSteppedPara(t, n, iteraciones, "Hash a aEntregar",
 		func() Diccionario[string, int] { return Hash.CrearHash[string, int]() })
 
 	testVolumenSteppedPara(t, n, iteraciones, "Hash cerrado punteros",
 		func() Diccionario[string, int] { return HashCerrado3.CrearHash[string, int]() })
 
-	testVolumenSteppedPara(t, n, iteraciones, "Hash a aEntregar",
+	testVolumenSteppedPara(t, n, iteraciones, "Hash cerrado ins based",
 		func() Diccionario[string, int] { return aEntregar.CrearHash[string, int]() })
 
 	testVolumenSteppedPara(t, n, 2, "Hash abierto",
