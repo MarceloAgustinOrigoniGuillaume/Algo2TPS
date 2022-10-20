@@ -5,3 +5,11 @@ TpLista
 
 Tp1
 - FINISH
+
+TpHash
+- FINISH
+
+
+
+TpABB
+- TO START
