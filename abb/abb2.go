@@ -36,22 +36,6 @@ func CrearABB[K comparable, V any](comparador func(K,K) int) DiccionarioOrdenado
 } 
 
 
-func iterarInOrder[K comparable, V any](nodo *nodoABB[K,V],visitar func(*nodoABB[K,V]) bool) bool{
-    if(nodo == nil){
-        return true
-    }
-
-    continuar := iterarInOrder(nodo.izq,visitar)
-    
-    if(continuar){
-        continuar = visitar(nodo)
-    }
-    if(continuar){
-        continuar = iterarInOrder(nodo.der,visitar)
-    }
-    return continuar
-}
-
 
 func buscarNodo[K comparable, V any](raiz **nodoABB[K,V],clave K, comparacion func(K,K) int) **nodoABB[K,V] {
     if *raiz == nil{
@@ -174,7 +158,8 @@ func (abb *abbStruct[K,V]) Cantidad() int{
 // mismo
 
  
-func iterarRango[K comparable, V any](nodo *nodoABB[K,V], desde *K, hasta *K, cmp func(K,K) int,visitar func(*nodoABB[K,V]) bool) bool{
+func iterarRango[K comparable, V any](nodo *nodoABB[K,V],desde *K, hasta *K,visitar func(*nodoABB[K,V]) bool,
+                                        cmp   func(K,K) int ) bool{
     if nodo == nil{  
         return true
     }
@@ -192,7 +177,7 @@ func iterarRango[K comparable, V any](nodo *nodoABB[K,V], desde *K, hasta *K, cm
     
     continuar := true
     if diffDesde >0 {// es mayor que el desde
-        continuar = iterarRango(nodo.izq,desde,hasta,cmp,visitar)
+        continuar = iterarRango(nodo.izq,visitar,desde,hasta,cmp)
     }
 
     if (continuar && diffDesde >=0 && diffHasta<=0){//esta en el rango
@@ -200,19 +185,14 @@ func iterarRango[K comparable, V any](nodo *nodoABB[K,V], desde *K, hasta *K, cm
     }
 
     if (continuar && diffHasta<0 ){// es menor que el hasta
-        continuar = iterarRango(nodo.der,desde,hasta,cmp,visitar)
+        continuar = iterarRango(nodo.der,visitar,desde,hasta,cmp)
     }
 
     return continuar
-
 }
 func (abb *abbStruct[K,V]) Iterar(visitar func(clave K, dato V) bool){
 
-    
-    iterarInOrder(abb.raiz,func(nodo *nodoABB[K,V]) bool {
-
-        return visitar(nodo.clave,nodo.valor)
-    })
+    iterarRango(abb.raiz,nil,nil,visitar, abb.cmp)    
 
 }
 
@@ -222,45 +202,82 @@ func (abb *abbStruct[K,V]) Iterar(visitar func(clave K, dato V) bool){
 // IterarRango itera sólo incluyendo a los elementos que se encuentren comprendidos en el rango indicado,
 // incluyéndolos en caso de encontrarse
 func (abb *abbStruct[K,V]) IterarRango(desde *K, hasta *K, visitar func(clave K, dato V) bool){
-
-   
-
-    iterarRango(abb.raiz,desde,hasta,abb.cmp, func(nodo *nodoABB[K,V]) bool{
-    	return visitar(nodo.clave,nodo.valor)
-    })
+    iterarRango(abb.raiz,desde,hasta,visitar)    
 }
 
 // IteradorRango crea un IterDiccionario que sólo itere por las claves que se encuentren en el rango indicado
 func (abb *abbStruct[K,V]) IteradorRango(desde *K, hasta *K) hash.IterDiccionario[K, V]{
-	return nil
+
+    
+
+	return crearIteradorABB(abb.raiz,desde,hasta,abb.cmp)
 }
 
 // Iterador devuelve un IterDiccionario para este Diccionario
 func (abb *abbStruct[K,V]) Iterador() hash.IterDiccionario[K, V]{
-    iterador:= crearIteradorABB(abb.raiz)
-
-	return iterador
+	return crearIteradorABB(abb.raiz, abb.cmp, nil, nil)
 }
 
 type iteradorABB[K comparable, V any] struct{
     aVisitar pila.Pila[*nodoABB[K,V]]
+    cmp func (K,K) int
+    desde *K
+    hasta *K
 }
 
-func crearIteradorABB[K comparable, V any](nodo *nodoABB[K,V]) hash.IterDiccionario[K,V]{
+func (iterador *iteradorABB[K,V]) agregarPrimeros(nodo *nodoABB[K,V]){
+
+    if(desde != nil){
+        for nodo != nil && iterador.cmp(nodo.clave, *iterador.desde)<0 {
+            nodo = nodo.der
+        }
+    }
+    
+
+    if nodo != nil{
+        iterador.agregarNodos(nodo)
+    } 
+
+}
+
+func (iterador *iteradorABB[K,V]) agregarNodos(nodo *nodoABB[K,V]){
+    diffHasta := -1
+
+    if iterador.hasta != nil {
+        diffHasta = iterador.cmp(nodo.clave, *iterador.hasta)
+    }
+    diffDesde := 1
+    if iterador.desde != nil{
+        diffDesde = iterador.cmp(nodo.clave, *iterador.desde)
+    }
+     
+
+    for nodo!=nil && diffDesde>=0{
+        if diffHasta<=0 { 
+            iterador.aVisitar.Apilar(nodo)
+        }
+        nodo = nodo.izq
+        diffHasta = iterador.cmp(nodo.clave, *iterador.hasta)
+        diffDesde = iterador.cmp(nodo.clave, *iterador.desde)
+    }
+}
+
+func crearIteradorABB[K comparable, V any](nodo *nodoABB[K,V],desde *K, hasta *K,
+                                            cmp func (K,K) int, )
+                                            hash.IterDiccionario[K,V]{
+
+ 
     iterador := new(iteradorABB[K,V])
     iterador.aVisitar = pila.CrearPilaDinamica[*nodoABB[K,V]]()
-
+    iterador.cmp=cmp
+    iterador.desde= desde
+    iterador.hasta=hasta
+    
     iterador.agregarNodos(nodo)
 
     return iterador
 }
-func (iterador *iteradorABB[K,V]) agregarNodos(nodo *nodoABB[K,V]){
 
-    for nodo!=nil{
-        iterador.aVisitar.Apilar(nodo)
-        nodo = nodo.izq
-    }
-}
 
 func (iterador *iteradorABB[K,V]) HaySiguiente() bool{
     return !iterador.aVisitar.EstaVacia()
