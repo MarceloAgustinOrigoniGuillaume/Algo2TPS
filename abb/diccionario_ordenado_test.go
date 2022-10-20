@@ -1,40 +1,35 @@
 package diccionario_test
 
 import (
+	TDAABB "abb"
 	"fmt"
 	"github.com/stretchr/testify/require"
-	TDAABB "abb"
-	"testing"
-	"strconv"
 	"math/rand"
+	"strconv"
+	"testing"
 )
-
 
 func funcionCompararBasicaStrings(elemento1 string, elemento2 string) int {
 	res := 0
-    resaux:=0
-	for i,c:= range elemento1{
-		res+= (i+1)*int(c)
-        resaux+= int(c)
+	resaux := 0
+	for i, c := range elemento1 {
+		res += (i + 1) * int(c)
+		resaux += int(c)
 	}
 
-	for i,c:= range elemento2{
-		res-= (i+1)*int(c)
-        resaux-= int(c)
+	for i, c := range elemento2 {
+		res -= (i + 1) * int(c)
+		resaux -= int(c)
 	}
-    if res==0 && resaux!=0{ return resaux}
+	if res == 0 && resaux != 0 {
+		return resaux
+	}
 	return res
 }
 
-//funcionCompararBasicaInts
-func funcionCompararBasicaInts(elemento1 int, elemento2 int) int{
+func funcionCompararBasicaInts(elemento1 int, elemento2 int) int {
 	return elemento1 - elemento2
 }
-
-func funcionComparacionBasica[K comparable](clave1 K, clave2 K) int{
-	return 0
-}
-
 
 // TEST DE LA CATEDRA PARA DICCIONARIO ADAPTADOS
 
@@ -215,8 +210,8 @@ func TestConClavesStructs(t *testing.T) {
 		z string
 	}
 
-	dic := TDAABB.CrearABB[avanzado, int](func (elem1, elem2 avanzado) int{
-		return funcionCompararBasicaStrings(elem1.z,elem2.z)
+	dic := TDAABB.CrearABB[avanzado, int](func(elem1, elem2 avanzado) int {
+		return funcionCompararBasicaStrings(elem1.z, elem2.z)
 	})
 
 	a1 := avanzado{w: 10, z: "hola", x: basico{a: "mundo", b: 8}, y: basico{a: "!", b: 10}}
@@ -277,62 +272,55 @@ func TestCadenaLargaParticular(t *testing.T) {
 	require.True(t, ok, "Obtener clave larga funciona")
 }
 
-
-
 func TestIterarClavesNumericas(t *testing.T) {
 	t.Log("Iterar con ints, y funcion comparar sencilla, seguira mientras esten ordenados")
 	dic := TDAABB.CrearABB[int, string](funcionCompararBasicaInts)
-	
-	clave:= 0
-	for i:= 5; i<10;i++{
+
+	clave := 0
+	for i := 5; i < 10; i++ {
 		clave = rand.Intn(100)
-		//t.Log(fmt.Sprintf("Ingreso %d",clave))
 		dic.Guardar(clave, "n"+strconv.Itoa(clave))
 	}
 	anterior := -1
-	iterados := 0 
-	dic.Iterar(func(clave int,valor string) bool {
-		//t.Log(fmt.Sprintf("%d < %d",anterior,clave))
-		if(clave < anterior){
+	iterados := 0
+	dic.Iterar(func(clave int, valor string) bool {
+		if clave < anterior {
 			return false
 		}
 		anterior = clave
 		iterados++
 		return true
 	})
-	require.EqualValues(t,dic.Cantidad(),iterados," NO itero todos los elementos, no estaban ordenados")
+	require.EqualValues(t, dic.Cantidad(), iterados, " NO itero todos los elementos, no estaban ordenados")
 
 }
-
-
 
 func TestIterarClavesNumericasRango(t *testing.T) {
 	t.Log("Iterar con ints, y funcion comparar sencilla, seguira mientras esten ordenados y en rango")
 	dic := TDAABB.CrearABB[int, string](funcionCompararBasicaInts)
-	
-	for i:= 2; i<12;i++{
-		//t.Log(fmt.Sprintf("Ingreso %d",clave))
+
+	for i := 2; i < 12; i++ {
 		dic.Guardar(i, "n"+strconv.Itoa(i))
 	}
 
 	anterior := -1
-	iterados := 0 
+	iterados := 0
 	desde := 3
 	hasta := 10
 	mensaje := ""
-	dic.IterarRango(&desde,&hasta,func(clave int,valor string) bool {
-		if(clave < desde){
-			mensaje = fmt.Sprintf("elmento no esta en rango, %d < %d",clave,desde)
+	dic.IterarRango(&desde, &hasta, func(clave int, valor string) bool {
+		if clave < desde {
+			mensaje = fmt.Sprintf("elmento no esta en rango, %d < %d", clave, desde)
 			return false
 		}
 
-		if(clave > hasta){
-			mensaje = fmt.Sprintf("elmento no esta en rango, %d < %d",hasta,clave)
+		if clave > hasta {
+			mensaje = fmt.Sprintf("elmento no esta en rango, %d < %d", hasta, clave)
 			return false
 		}
 
-		if(clave < anterior){
-			mensaje = fmt.Sprintf("Orden incorrecto no es mayor, %d < %d",anterior,clave)
+		if clave < anterior {
+			mensaje = fmt.Sprintf("Orden incorrecto no es mayor, %d < %d", anterior, clave)
 			return false
 		}
 		anterior = clave
@@ -340,59 +328,95 @@ func TestIterarClavesNumericasRango(t *testing.T) {
 		return true
 	})
 
-	require.EqualValues(t,"",mensaje,fmt.Sprintf(" NO itero todos los elementos, %s",mensaje))
+	require.EqualValues(t, "", mensaje, fmt.Sprintf(" NO itero todos los elementos, %s", mensaje))
 
 }
-
-
-
-
 
 func TestIterarClavesNumericasExterno(t *testing.T) {
 	t.Log("Iterar externo con ints, y funcion comparar sencilla, seguira mientras esten ordenados")
 
 	dic := TDAABB.CrearABB[int, string](funcionCompararBasicaInts)
-	
-	for i:= 2; i<12;i++{
-		//t.Log(fmt.Sprintf("Ingreso %d",clave))
+
+	for i := 2; i < 12; i++ {
 		dic.Guardar(i, "n"+strconv.Itoa(i))
 	}
 
 	anterior := -1
-	iterados := 0 
+	iterados := 0
+
 	mensaje := ""
 
 	iterador := dic.Iterador()
 
-	for iterador.HaySiguiente(){
-		clave,valor := iterador.VerActual()
-		if(clave < anterior){
-			mensaje = fmt.Sprintf("Orden incorrecto no es mayor, %d < %d",anterior,clave)
+	for iterador.HaySiguiente() {
+		clave, valor := iterador.VerActual()
+		if clave < anterior {
+			mensaje = fmt.Sprintf("Orden incorrecto no es mayor, %d < %d", anterior, clave)
 			break
 		}
-		if(valor != "n"+strconv.Itoa(clave)){
-			mensaje = fmt.Sprintf("valor incorrecto , en indice %d ",clave)
+		if valor != "n"+strconv.Itoa(clave) {
+			mensaje = fmt.Sprintf("valor incorrecto , en indice %d ", clave)
 			break
 		}
 		anterior = clave
 		iterador.Siguiente()
 		iterados++
 	}
-	if(iterados < dic.Cantidad()){
+	if mensaje == "" && iterados < dic.Cantidad() {
 		mensaje = "No recorrio todos por alguna magica razon"
 	}
 
-	require.EqualValues(t,"",mensaje,fmt.Sprintf(" NO itero todos los elementos, %s",mensaje))
+	require.EqualValues(t, "", mensaje, fmt.Sprintf(" NO itero todos los elementos, %s", mensaje))
 
 }
 
+func TestIterarClavesNumericasRangoExterno(t *testing.T) {
+	t.Log("Iterar externo con ints, y funcion comparar sencilla, seguira mientras esten ordenados")
 
+	dic := TDAABB.CrearABB[int, string](funcionCompararBasicaInts)
 
+	for i := 2; i < 12; i++ {
+		dic.Guardar(i, "n"+strconv.Itoa(i))
+	}
 
+	anterior := -1
+	iterados := 0
+	desde := 3
+	hasta := 10
 
+	mensaje := ""
 
+	iterador := dic.IteradorRango(&desde, &hasta)
 
+	for iterador.HaySiguiente() {
+		clave, valor := iterador.VerActual()
 
+		if clave < desde {
+			mensaje = fmt.Sprintf("elmento no esta en rango, %d < %d", clave, desde)
+			break
+		}
 
+		if clave > hasta {
+			mensaje = fmt.Sprintf("elmento no esta en rango, %d < %d", hasta, clave)
+			break
+		}
 
+		if clave < anterior {
+			mensaje = fmt.Sprintf("Orden incorrecto no es mayor, %d < %d", anterior, clave)
+			break
+		}
+		if valor != "n"+strconv.Itoa(clave) {
+			mensaje = fmt.Sprintf("valor incorrecto , en indice %d ", clave)
+			break
+		}
+		anterior = clave
+		iterador.Siguiente()
+		iterados++
+	}
+	if mensaje == "" && iterados < 7 {
+		mensaje = "No recorrio todos por alguna magica razon"
+	}
 
+	require.EqualValues(t, "", mensaje, fmt.Sprintf(" NO itero todos los elementos, %s", mensaje))
+
+}
