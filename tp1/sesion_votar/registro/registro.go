@@ -2,6 +2,7 @@ package registro
 
 import TDAPila "pila"
 import "sesion_votar/errores"
+
 type Registro interface {
 
 	//Borra la ultima accion en el registro, accionandola en el proceso

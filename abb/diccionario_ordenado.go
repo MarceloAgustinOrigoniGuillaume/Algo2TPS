@@ -1,6 +1,6 @@
 package diccionario
-import hash "hash/interface"
 
+import hash "hash/interface"
 
 type DiccionarioOrdenado[K comparable, V any] interface {
 	hash.Diccionario[K, V]
@@ -10,5 +10,5 @@ type DiccionarioOrdenado[K comparable, V any] interface {
 	IterarRango(desde *K, hasta *K, visitar func(clave K, dato V) bool)
 
 	// IteradorRango crea un IterDiccionario que sólo itere por las claves que se encuentren en el rango indicado
-	IteradorRango(desde *K, hasta *K) hash.IterDiccionario[K,V]
+	IteradorRango(desde *K, hasta *K) hash.IterDiccionario[K, V]
 }

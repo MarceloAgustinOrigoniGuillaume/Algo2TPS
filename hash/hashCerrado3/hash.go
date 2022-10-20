@@ -106,20 +106,15 @@ func (hash *hashCerrado[K, V]) ocupaMuchaMemoria() bool {
 	return len(hash.elementos) >= 2*_CAPACIDAD_INICIAL && 100*hash.cantidad <= len(hash.elementos)*_MINIMA_CARGA
 }
 
-
-
-
-
-
-func deberiaSeguir[K comparable, V any](elemento *elementoCerrado[K,V],clave K) bool{
+func deberiaSeguir[K comparable, V any](elemento *elementoCerrado[K, V], clave K) bool {
 	return elemento.estado != _VACIO && elemento.clave != clave
 }
-func buscarElementoCerrado[K comparable, V any](elementos []elementoCerrado[K, V], clave K, haceAlgo func(*elementoCerrado[K, V])) *elementoCerrado[K, V]{
-	
+func buscarElementoCerrado[K comparable, V any](elementos []elementoCerrado[K, V], clave K, haceAlgo func(*elementoCerrado[K, V])) *elementoCerrado[K, V] {
+
 	posInicial := aplicaFuncionDeHash(clave, len(elementos))
 	i := posInicial
 
-	for i < len(elementos) && deberiaSeguir(&elementos[i],clave) {
+	for i < len(elementos) && deberiaSeguir(&elementos[i], clave) {
 		haceAlgo(&elementos[i])
 		i++
 	}
@@ -128,15 +123,15 @@ func buscarElementoCerrado[K comparable, V any](elementos []elementoCerrado[K, V
 	}
 
 	i = 0
-	for i < posInicial && deberiaSeguir(&elementos[i],clave) {
+	for i < posInicial && deberiaSeguir(&elementos[i], clave) {
 		haceAlgo(&elementos[i])
 		i++
 	}
 
-	if i == posInicial{
+	if i == posInicial {
 		return nil // significaria recorrio todo sin exito
 	}
-	
+
 	return &elementos[i]
 
 }
@@ -144,15 +139,14 @@ func buscarElementoCerrado[K comparable, V any](elementos []elementoCerrado[K, V
 func buscarElementoAModificar[K comparable, V any](elementos []elementoCerrado[K, V], clave K) *elementoCerrado[K, V] {
 	var aDevolver *elementoCerrado[K, V] = nil
 	ultimoVisto := buscarElementoCerrado(elementos, clave, func(elemento *elementoCerrado[K, V]) {
-		if aDevolver == nil && elemento.estado == _BORRADO{
+		if aDevolver == nil && elemento.estado == _BORRADO {
 			aDevolver = elemento
 		}
 	})
 
-	if(ultimoVisto != nil && (aDevolver == nil || ultimoVisto.estado != _VACIO)){
+	if ultimoVisto != nil && (aDevolver == nil || ultimoVisto.estado != _VACIO) {
 		aDevolver = ultimoVisto
 	}
-
 
 	return aDevolver
 }
@@ -180,19 +174,19 @@ func (hash *hashCerrado[K, V]) Guardar(clave K, valor V) {
 		if aModificar.estado == _BORRADO {
 			hash.borrados--
 		}
-	} else{
-		fmt.Printf("\nESTABA OCUPADO??? %v::: %v\n ",clave,*aModificar)
+	} else {
+		fmt.Printf("\nESTABA OCUPADO??? %v::: %v\n ", clave, *aModificar)
 	}
 
-	*aModificar = crearElementoCerrado(clave,valor)
+	*aModificar = crearElementoCerrado(clave, valor)
 }
 
-func (hash *hashCerrado[K, V]) esValido(elem *elementoCerrado[K, V]) bool{
+func (hash *hashCerrado[K, V]) esValido(elem *elementoCerrado[K, V]) bool {
 	return elem != nil && elem.estado == _OCUPADO
 }
 
-func (hash *hashCerrado[K, V]) panicNoEstaba(elemento *elementoCerrado[K, V]) *elementoCerrado[K, V]{
-	if !hash.esValido(elemento){
+func (hash *hashCerrado[K, V]) panicNoEstaba(elemento *elementoCerrado[K, V]) *elementoCerrado[K, V] {
+	if !hash.esValido(elemento) {
 		panic(ERROR_NO_ESTABA)
 	}
 
@@ -200,15 +194,15 @@ func (hash *hashCerrado[K, V]) panicNoEstaba(elemento *elementoCerrado[K, V]) *e
 }
 
 func (hash *hashCerrado[K, V]) Pertenece(clave K) bool {
-	return hash.esValido(buscarElementoCerrado(hash.elementos, clave, func(elemento *elementoCerrado[K, V]){}))
+	return hash.esValido(buscarElementoCerrado(hash.elementos, clave, func(elemento *elementoCerrado[K, V]) {}))
 }
 
-func (hash *hashCerrado[K, V]) Obtener(clave K) V {	
-	return hash.panicNoEstaba(buscarElementoCerrado(hash.elementos, clave, func(elemento *elementoCerrado[K, V]){})).valor
+func (hash *hashCerrado[K, V]) Obtener(clave K) V {
+	return hash.panicNoEstaba(buscarElementoCerrado(hash.elementos, clave, func(elemento *elementoCerrado[K, V]) {})).valor
 }
 
 func (hash *hashCerrado[K, V]) Borrar(clave K) V {
-	elemento := hash.panicNoEstaba(buscarElementoCerrado(hash.elementos, clave, func(elemento *elementoCerrado[K, V]){}))
+	elemento := hash.panicNoEstaba(buscarElementoCerrado(hash.elementos, clave, func(elemento *elementoCerrado[K, V]) {}))
 	elem := elemento.valor
 	hash.cantidad--
 	*elemento = crearElementoCerradoVacio[K, V]()

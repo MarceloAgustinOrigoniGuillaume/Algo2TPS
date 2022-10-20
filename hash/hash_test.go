@@ -3,8 +3,8 @@ package hash_test
 import (
 	"fmt"
 	"github.com/stretchr/testify/require"
-	aEntregar "hash/hashCerrado"
 	HashAbierto "hash/hashAbierto"
+	aEntregar "hash/hashCerrado"
 	HashCuckoo "hash/hashCuckoo"
 
 	Hash "hash/aEntregar"
@@ -251,7 +251,7 @@ func ejecutarPruebasVolumenIterador(b *testing.T, n int) {
 	require.True(b, ok, "No se cambiaron todos los elementos")
 }
 
-///*
+// /*
 func TestAgregado(t *testing.T) {
 	hash := Hash.CrearHash[string, int]()
 
@@ -371,6 +371,7 @@ func TestIteradorExterno(t *testing.T) {
 	require.EqualValues(t, 3, i, "No mostro la cantidad correcta el iterador externo?")
 
 }
+
 //*/
 
 func _JenkinsHashFunction(bytes []byte) uint64 {
@@ -496,7 +497,6 @@ func TestVolumen(t *testing.T) {
 	const iteraciones int64 = 10
 
 	t.Log(fmt.Sprintf("pruebas de %d elementos %d veces", n, iteraciones))
-
 
 	testVolumenSteppedPara(t, n, iteraciones, "Hash a aEntregar",
 		func() Diccionario[string, int] { return Hash.CrearHash[string, int]() })
