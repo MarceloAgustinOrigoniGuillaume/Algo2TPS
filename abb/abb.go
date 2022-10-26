@@ -178,7 +178,7 @@ func iterarRango[K comparable, V any](nodo *nodoABB[K, V], desde *K, hasta *K,
 }
 
 func (abb *abbStruct[K, V]) Iterar(visitar func(clave K, dato V) bool) {
-	abb.IterarRango(nil,nil,visitar)
+	abb.IterarRango(nil, nil, visitar)
 }
 
 // IterarRango itera sólo incluyendo a los elementos que se encuentren comprendidos en el rango indicado,
@@ -197,8 +197,8 @@ func (abb *abbStruct[K, V]) IteradorRango(desde *K, hasta *K) hash.IterDiccionar
 }
 
 // Iterador devuelve un IterDiccionario para este Diccionario
-func (abb *abbStruct[K, V]) Iterador() hash.IterDiccionario[K, V] {
-	return abb.IteradorRango(nil,nil)
+func (abb *abbStruct[K, V]) Iterador() IterDiccionario[K, V] {
+	return abb.IteradorRango(nil, nil)
 }
 
 type iteradorABB[K comparable, V any] struct {

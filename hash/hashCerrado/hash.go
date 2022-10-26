@@ -86,16 +86,15 @@ func (hash *hashCerrado[K, V]) ocupaMuchaMemoria() bool {
 	return len(hash.elementos) >= 2*_CAPACIDAD_INICIAL && 100*hash.cantidad <= len(hash.elementos)*_MINIMA_CARGA
 }
 
-
-func deberiaSeguir[K comparable, V any](elemento *elementoCerrado[K,V],clave K) bool{
+func deberiaSeguir[K comparable, V any](elemento *elementoCerrado[K, V], clave K) bool {
 	return elemento.estado != _VACIO && elemento.clave != clave
 }
-func buscarElementoCerrado[K comparable, V any](elementos []elementoCerrado[K, V], clave K, haceAlgo func(int)) int{
-	
+func buscarElementoCerrado[K comparable, V any](elementos []elementoCerrado[K, V], clave K, haceAlgo func(int)) int {
+
 	posInicial := aplicaFuncionDeHash(clave, len(elementos))
 	i := posInicial
 
-	for i < len(elementos) && deberiaSeguir(&elementos[i],clave) {
+	for i < len(elementos) && deberiaSeguir(&elementos[i], clave) {
 		haceAlgo(i)
 		i++
 	}
@@ -104,12 +103,12 @@ func buscarElementoCerrado[K comparable, V any](elementos []elementoCerrado[K, V
 	}
 
 	i = 0
-	for i < posInicial && deberiaSeguir(&elementos[i],clave) {
+	for i < posInicial && deberiaSeguir(&elementos[i], clave) {
 		haceAlgo(i)
 		i++
 	}
 
-	if i == posInicial{
+	if i == posInicial {
 		i = -1 // significaria recorrio todo sin exito
 	}
 
@@ -118,15 +117,15 @@ func buscarElementoCerrado[K comparable, V any](elementos []elementoCerrado[K, V
 }
 
 func buscarElementoAModificar[K comparable, V any](elementos []elementoCerrado[K, V], clave K) int {
-	indiceRes:=-1
+	indiceRes := -1
 	ultimoIndice := buscarElementoCerrado(elementos, clave, func(indice int) {
-		if indiceRes == -1 && elementos[indice].estado == _BORRADO{  // se agarra el primer borrado por defecto
+		if indiceRes == -1 && elementos[indice].estado == _BORRADO { // se agarra el primer borrado por defecto
 			indiceRes = indice
 		}
 	})
 
 	// mantiene primer borrado, si no se encontro el elemento
-	if (ultimoIndice != -1 && (indiceRes == -1 || elementos[ultimoIndice].estado != _VACIO)){ 
+	if ultimoIndice != -1 && (indiceRes == -1 || elementos[ultimoIndice].estado != _VACIO) {
 		indiceRes = ultimoIndice
 	}
 	return indiceRes
@@ -134,15 +133,13 @@ func buscarElementoAModificar[K comparable, V any](elementos []elementoCerrado[K
 
 func (hash *hashCerrado[K, V]) buscarPosicion(clave K) int {
 	indice := buscarElementoCerrado(hash.elementos, clave, func(indice int) {})
-	
-	if(hash.elementos[indice].estado != _OCUPADO){
+
+	if hash.elementos[indice].estado != _OCUPADO {
 		indice = -1
 	}
 
 	return indice
 }
-
-
 
 func (hash *hashCerrado[K, V]) redimensionar(nuevoLargo int) {
 	nuevos := crearTabla[K, V](nuevoLargo)
@@ -173,11 +170,9 @@ func (hash *hashCerrado[K, V]) Guardar(clave K, valor V) {
 	hash.elementos[indice] = crearElementoCerrado(clave, valor)
 }
 
-
-
 // da el elemento si pertenece, sino panic
-func (hash *hashCerrado[K, V]) dameElemento(ind int) *elementoCerrado[K,V]{
-	if (ind  == -1){
+func (hash *hashCerrado[K, V]) dameElemento(ind int) *elementoCerrado[K, V] {
+	if ind == -1 {
 		panic(ERROR_NO_ESTABA)
 	}
 
@@ -187,8 +182,6 @@ func (hash *hashCerrado[K, V]) dameElemento(ind int) *elementoCerrado[K,V]{
 func (hash *hashCerrado[K, V]) Pertenece(clave K) bool {
 	return hash.buscarPosicion(clave) != -1
 }
-
-
 
 func (hash *hashCerrado[K, V]) Obtener(clave K) V {
 	return hash.dameElemento(hash.buscarPosicion(clave)).valor
