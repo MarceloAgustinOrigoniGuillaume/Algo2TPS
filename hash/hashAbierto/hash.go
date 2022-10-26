@@ -5,7 +5,8 @@ import "reflect"
 import TDALista "lista"
 
 const _CAPACIDAD_INICIAL = 1000
-const _MAXIMA_CARGA = 15 // esta constante tendria unidad de 10%, osea 9 = 70%
+const _MAXIMA_CARGA = 150 // esta constante tendria unidad de 10%, osea 9 = 70%
+const _MINIMA_CARGA = 10  // esta constante tendria unidad de 1%, osea 10 = 10%
 const ERROR_NO_ESTABA = "La clave no pertenece al diccionario"
 const ERROR_ITERADOR_TERMINO = "El iterador termino de iterar"
 
@@ -62,9 +63,12 @@ func CrearHash[K comparable, V any]() Diccionario[K, V] {
 	return hash
 }
 
-// las unidades serian de 10%, aca lo que se haria es comparar el 100% de la cantidad con el (_MAXIMA_CARGA*10)% de la longitud(70%)
 func (hash *hashAbierto[K, V]) superoCargaPermitida() bool {
-	return 10*hash.cantidad >= len(hash.elementos)*_MAXIMA_CARGA
+	return 100*(hash.cantidad) >= len(hash.elementos)*_MAXIMA_CARGA
+}
+
+func (hash *hashAbierto[K, V]) ocupaMuchaMemoria() bool {
+	return len(hash.elementos) >= 2*_CAPACIDAD_INICIAL && 100*hash.cantidad <= len(hash.elementos)*_MINIMA_CARGA
 }
 
 func (hash *hashAbierto[K, V]) buscarElemento(listaPosicion TDALista.Lista[*elementoAbierto[K, V]], clave K) *elementoAbierto[K, V] {
@@ -94,8 +98,8 @@ func (hash *hashAbierto[K, V]) iterarInterno(visitar func(*elementoAbierto[K, V]
 	}
 }
 
-func (hash *hashAbierto[K, V]) redimensionar() {
-	nuevasListas := crearTabla[K, V](2 * len(hash.elementos))
+func (hash *hashAbierto[K, V]) redimensionar(nuevoLargo int) {
+	nuevasListas := crearTabla[K, V](nuevoLargo)
 
 	hash.iterarInterno(func(elemento *elementoAbierto[K, V]) bool {
 		nuevasListas[aplicarFuncionHash(elemento.clave, len(nuevasListas))].InsertarUltimo(elemento)
@@ -119,7 +123,7 @@ func (hash *hashAbierto[K, V]) Guardar(clave K, valor V) {
 	}
 	hash.cantidad++
 	if hash.superoCargaPermitida() {
-		hash.redimensionar()
+		hash.redimensionar(2 * len(hash.elementos))
 		listaCorrespondiente = hash.dameLista(clave)
 	}
 
@@ -140,6 +144,9 @@ func (hash *hashAbierto[K, V]) Obtener(clave K) V {
 
 func (hash *hashAbierto[K, V]) Borrar(clave K) V {
 
+
+
+
 	iterador := hash.dameLista(clave).Iterador()
 
 	for iterador.HaySiguiente() && iterador.VerActual().clave != clave {
@@ -151,6 +158,12 @@ func (hash *hashAbierto[K, V]) Borrar(clave K) V {
 	}
 
 	elem := iterador.Borrar()
+
+
+	if hash.ocupaMuchaMemoria() {
+		hash.redimensionar(len(hash.elementos) / 2)
+	}
+
 	hash.cantidad--
 	return elem.valor
 }
