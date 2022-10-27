@@ -1,7 +1,7 @@
 package diccionario
 
 import "fmt"
-import TDALista "lista"
+//import TDALista "lista"
 
 const _CAPACIDAD_INICIAL = 1000
 const _MAXIMA_CARGA = 150 // esta constante tendria unidad de 10%, osea 9 = 70%
@@ -45,8 +45,8 @@ func crearElementoAbierto[K comparable, V any](clave K, valor V) *elementoAbiert
 	return &elementoAbierto[K, V]{clave, valor}
 }
 
-func crearTabla[K comparable, V any](largo int) []TDALista.Lista[*elementoAbierto[K, V]] {
-	tabla := make([]TDALista.Lista[*elementoAbierto[K, V]], largo)
+func crearTabla[K comparable, V any](largo int) []*elementoAbierto[K, V] {
+	tabla := make([]*elementoAbierto[K, V], largo)
 	for i := range tabla {
 		tabla[i] = TDALista.CrearListaEnlazada[*elementoAbierto[K, V]]()
 	}
@@ -54,7 +54,7 @@ func crearTabla[K comparable, V any](largo int) []TDALista.Lista[*elementoAbiert
 }
 
 type hashAbierto[K comparable, V any] struct {
-	elementos []TDALista.Lista[*elementoAbierto[K, V]]
+	elementos [][]*elementoAbierto[K, V]
 	cantidad  int
 }
 

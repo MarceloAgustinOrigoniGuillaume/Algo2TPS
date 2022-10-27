@@ -1,7 +1,6 @@
 package diccionario
 
 import "fmt"
-import "reflect"
 import "hash/xxh3"
 
 const _CAPACIDAD_INICIAL = 127
@@ -11,13 +10,14 @@ const ERROR_NO_ESTABA = "La clave no pertenece al diccionario"
 const ERROR_ITERADOR_TERMINO = "El iterador termino de iterar"
 
 func toBytes(objeto interface{}) []byte {
-	switch objeto.(type) {
-	case string: // se chequea el tipo para saber cuando se puede usar una forma mas rapida
-		return []byte(reflect.ValueOf(objeto).String())
-	default:
-		return []byte(fmt.Sprintf("%v", objeto)) //*((*[]byte) unsafe.Pointer(reflect.ValueOf(objeto).Pointer()) )
+	
+	str, esString := objeto.(string)
+
+	if esString{
+		return []byte(str)
 	}
-	//return []byte(fmt.Sprintf("%v",objeto))
+
+	return []byte(fmt.Sprintf("%v", objeto))
 }
 
 func creatividad2(bytes []byte) uint64 {
