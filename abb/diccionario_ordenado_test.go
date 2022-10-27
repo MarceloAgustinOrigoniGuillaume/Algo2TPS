@@ -421,55 +421,51 @@ func TestIterarClavesNumericasRangoExterno(t *testing.T) {
 
 }
 
-
-
-func llamadosBinariosRango(minimo int,maximo int, visitar func(int)){
-	if minimo+1 >= maximo{
+func llamadosBinariosRango(minimo int, maximo int, visitar func(int)) {
+	if minimo+1 >= maximo {
 		return
 	}
-	medio := (minimo+maximo)>>1
+	medio := (minimo + maximo) >> 1
 	visitar(medio)
-	llamadosBinariosRango(minimo,medio,visitar)
-	llamadosBinariosRango(medio,maximo,visitar)
+	llamadosBinariosRango(minimo, medio, visitar)
+	llamadosBinariosRango(medio, maximo, visitar)
 }
 
-
-func TestVolumen(t *testing.T){
+func TestVolumen(t *testing.T) {
 	dic := TDAABB.CrearABB[int, string](funcionCompararBasicaInts)
-	tamanio:= 200000
+	tamanio := 200000
 	t.Log(fmt.Sprintf("Insertando 200 000 elementos desordenados y verificando hayan sido agregados y se recorran en orden, despues se borra la mitad y se verificar se itere en orden externamente por rango de 100 200 a 200 256, verificando no itere de mas"))
-	llamadosBinariosRango(0,tamanio,func (indice int){
-		dic.Guardar(indice,"n"+strconv.Itoa(indice))
+	llamadosBinariosRango(0, tamanio, func(indice int) {
+		dic.Guardar(indice, "n"+strconv.Itoa(indice))
 	})
 
-	require.EqualValues(t,tamanio-1,dic.Cantidad(),"No agrego todos los elementos")
-	i:= 1
-	dic.IterarRango(nil,nil,func(clave int, valor string) bool {
-		require.EqualValues(t,i,clave,"Clave no estuvo en orden")
-		require.EqualValues(t,valor,"n"+strconv.Itoa(i),"Valor no fue correcto")
+	require.EqualValues(t, tamanio-1, dic.Cantidad(), "No agrego todos los elementos")
+	i := 1
+	dic.IterarRango(nil, nil, func(clave int, valor string) bool {
+		require.EqualValues(t, i, clave, "Clave no estuvo en orden")
+		require.EqualValues(t, valor, "n"+strconv.Itoa(i), "Valor no fue correcto")
 		i++
 		return true
 	})
 
-	require.EqualValues(t,tamanio,i,"No itero todos los elementos internamente")
+	require.EqualValues(t, tamanio, i, "No itero todos los elementos internamente")
 	i = 1
-	for i < tamanio>>1{
+	for i < tamanio>>1 {
 		dic.Borrar(i)
 		i++
 	}
-	
 
-	require.EqualValues(t,tamanio - tamanio>>1,dic.Cantidad(),"No borro una cantidad correcta de elementos")
+	require.EqualValues(t, tamanio-tamanio>>1, dic.Cantidad(), "No borro una cantidad correcta de elementos")
 
-	minimo:= tamanio - tamanio>>1 + 200
-	maximo:= tamanio + 256
-	iterador := dic.IteradorRango(&minimo,&maximo)
+	minimo := tamanio - tamanio>>1 + 200
+	maximo := tamanio + 256
+	iterador := dic.IteradorRango(&minimo, &maximo)
 	i = minimo
 	for iterador.HaySiguiente() {
-		require.EqualValues(t,i,iterador.Siguiente(),"Valor incorrecto en iterador externo por rango.")
+		require.EqualValues(t, i, iterador.Siguiente(), "Valor incorrecto en iterador externo por rango.")
 		i++
 	}
 
-	require.EqualValues(t,tamanio,i,"No recorrio una cantidad correcta de elementos iterador externo por rango")
+	require.EqualValues(t, tamanio, i, "No recorrio una cantidad correcta de elementos iterador externo por rango")
 
 }
