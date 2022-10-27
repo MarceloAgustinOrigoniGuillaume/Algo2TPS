@@ -1,6 +1,5 @@
 package diccionario
 
-import "reflect"
 import "fmt"
 import "hash/xxh3"
 
@@ -21,12 +20,14 @@ const (
 // utilities
 
 func toBytes(objeto interface{}) []byte {
-	switch objeto.(type) {
-	case string: // se chequea el tipo para saber cuando se puede usar una forma mas rapida
-		return []byte(reflect.ValueOf(objeto).String())
-	default:
-		return []byte(fmt.Sprintf("%v", objeto)) // lento pero justo
+	
+	str, esString := objeto.(string)
+
+	if esString{
+		return []byte(str)
 	}
+
+	return []byte(fmt.Sprintf("%v", objeto))
 }
 
 func _JenkinsHashFunction(bytes []byte) int {
