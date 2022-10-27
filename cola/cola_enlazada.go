@@ -58,9 +58,7 @@ func (cola *colaEnlazada[T]) Encolar(valor T) {
 // Desencolar saca el primer elemento de la cola. Si la cola tiene elementos, se quita el primero de la misma,
 // y se devuelve ese valor. Si está vacía, entra en pánico con un mensaje "La cola esta vacia".
 func (cola *colaEnlazada[T]) Desencolar() T {
-	cola.panicEstaVacia()
-
-	res := cola.primero.valor
+	res := cola.VerPrimero()
 
 	cola.primero = cola.primero.siguiente
 
