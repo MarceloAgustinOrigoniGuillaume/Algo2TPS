@@ -53,9 +53,7 @@ func (pila *pilaDinamica[T]) Apilar(elemento T) {
 }
 
 func (pila *pilaDinamica[T]) Desapilar() T {
-	pila.panicEstaVacia()
-
-	var elemento T = pila.datos[pila.ultimoIndice]
+	var elemento T = pila.VerTope()
 
 	if len(pila.datos) > 2*capacidadInicial && len(pila.datos) >= 4*pila.ultimoIndice {
 		pila.redimensionar(2 * pila.ultimoIndice)

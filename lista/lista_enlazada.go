@@ -89,9 +89,7 @@ func (lista *listaEnlazada[T]) InsertarPrimero(valor T) {
 // Saca el primer elemento de la lista. Si la lista tiene elementos, se quita el primero de la misma,
 // y se devuelve ese valor. Si está vacía, entra en pánico con un mensaje "La lista esta vacia".
 func (lista *listaEnlazada[T]) BorrarPrimero() T {
-	lista.panicEstaVacia()
-
-	res := lista.primero.valor
+	res := lista.VerPrimero()
 
 	lista.primero = lista.primero.siguiente
 
