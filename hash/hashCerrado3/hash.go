@@ -20,10 +20,10 @@ const (
 // utilities
 
 func toBytes(objeto interface{}) []byte {
-	
+
 	str, esString := objeto.(string)
 
-	if esString{
+	if esString {
 		return []byte(str)
 	}
 

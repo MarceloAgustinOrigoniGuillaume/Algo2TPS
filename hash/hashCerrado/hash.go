@@ -20,10 +20,10 @@ const (
 // utilities
 
 func toBytes(objeto interface{}) []byte {
-	
+
 	str, esString := objeto.(string)
 
-	if esString{
+	if esString {
 		return []byte(str)
 	}
 
@@ -144,7 +144,7 @@ func (hash *hashCerrado[K, V]) redimensionar(nuevoLargo int) {
 
 func (hash *hashCerrado[K, V]) Guardar(clave K, valor V) {
 	if hash.superoCargaPermitida() {
-		hash.redimensionar(len(hash.elementos)<<2)
+		hash.redimensionar(len(hash.elementos) << 2)
 	}
 	indice, estaba := buscarPosicionElementoCerrado(hash.elementos, clave)
 	if !estaba {
@@ -184,7 +184,7 @@ func (hash *hashCerrado[K, V]) Borrar(clave K) V {
 	hash.borrados++
 
 	if hash.ocupaMuchaMemoria() {
-		hash.redimensionar(len(hash.elementos)>>1)
+		hash.redimensionar(len(hash.elementos) >> 1)
 	}
 
 	return elem

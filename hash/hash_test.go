@@ -3,8 +3,8 @@ package hash_test
 import (
 	"fmt"
 	"github.com/stretchr/testify/require"
-	HashAbierto "hash/hashAbierto"
 	aEntregar "hash/aEntregar"
+	HashAbierto "hash/hashAbierto"
 	HashCuckoo "hash/hashCuckoo"
 
 	Hash "hash/hashCerrado"
@@ -394,10 +394,10 @@ func TestHashFunctions(t *testing.T) {
 }
 
 func toBytes3(objeto interface{}) []byte {
-	
+
 	str, esString := objeto.(string)
 
-	if esString{
+	if esString {
 		return []byte(str)
 	}
 
@@ -507,7 +507,6 @@ func TestVolumen(t *testing.T) {
 
 	testVolumenSteppedPara(t, n, iteraciones, "Hash cerrado punteros",
 		func() Diccionario[string, int] { return HashCerrado3.CrearHash[string, int]() })
-
 
 	testVolumenSteppedPara(t, n, 2, "Hash abierto",
 		func() Diccionario[string, int] { return HashAbierto.CrearHash[string, int]() })

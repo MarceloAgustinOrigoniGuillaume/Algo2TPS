@@ -1,4 +1,5 @@
 package main
+
 import "os"
 import algogram "tp2/sesion"
 import "strings"
@@ -9,22 +10,21 @@ const ErrorFaltanParametros = "Faltan parametros"
 const ErrorComandoInvalido = "Comando invalido"
 
 func devolverErrorODefault(def string, err error) string {
-	if err != nil{
+	if err != nil {
 		return err.Error()
 	}
-
 
 	return def
 }
 
 func AccionDesdeComando(sesion algogram.Sesion, comando string) string {
 	if comando == "logout" {
-		return devolverErrorODefault("Adios",sesion.Logout())
-	} else if comando == "ver_siguiente_feed"{
+		return devolverErrorODefault("Adios", sesion.Logout())
+	} else if comando == "ver_siguiente_feed" {
 		return devolverErrorODefault(sesion.VerSiguientePost())
 	}
 
-	args := strings.SplitN(comando, " ",2)
+	args := strings.SplitN(comando, " ", 2)
 
 	if len(args) < 2 {
 		return ErrorFaltanParametros
@@ -49,16 +49,16 @@ func AccionDesdeComando(sesion algogram.Sesion, comando string) string {
 	return ErrorComandoInvalido
 }
 
-func main(){
+func main() {
 	if len(os.Args) < 2 {
-		fmt.Fprintf(os.Stdout,"INSUFICIENTES ARGS\n")
+		fmt.Fprintf(os.Stdout, "INSUFICIENTES ARGS\n")
 		return
 	}
 
-	sesion,err := algogram.CrearSesion(os.Args[1])
-	if err != nil{
-		fmt.Fprintf(os.Stdout,"%s\n",err.Error())
-		return		
+	sesion, err := algogram.CrearSesion(os.Args[1])
+	if err != nil {
+		fmt.Fprintf(os.Stdout, "%s\n", err.Error())
+		return
 	}
 	inputUsuario := bufio.NewScanner(os.Stdin)
 

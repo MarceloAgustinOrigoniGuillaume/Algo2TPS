@@ -4,12 +4,11 @@ type DatosUsuario interface {
 	Nombre() string
 }
 
-
-type datosUsuario struct{
+type datosUsuario struct {
 	nombre string
 }
 
-func CrearDatosUsuario(nombre string) DatosUsuario{
+func CrearDatosUsuario(nombre string) DatosUsuario {
 	return &datosUsuario{nombre}
 }
 

@@ -1,6 +1,7 @@
 package diccionario
 
 import "fmt"
+
 //import TDALista "lista"
 
 const _CAPACIDAD_INICIAL = 1000
@@ -10,10 +11,10 @@ const ERROR_NO_ESTABA = "La clave no pertenece al diccionario"
 const ERROR_ITERADOR_TERMINO = "El iterador termino de iterar"
 
 func toBytes(objeto interface{}) []byte {
-	
+
 	str, esString := objeto.(string)
 
-	if esString{
+	if esString {
 		return []byte(str)
 	}
 
@@ -145,9 +146,6 @@ func (hash *hashAbierto[K, V]) Obtener(clave K) V {
 
 func (hash *hashAbierto[K, V]) Borrar(clave K) V {
 
-
-
-
 	iterador := hash.dameLista(clave).Iterador()
 
 	for iterador.HaySiguiente() && iterador.VerActual().clave != clave {
@@ -159,7 +157,6 @@ func (hash *hashAbierto[K, V]) Borrar(clave K) V {
 	}
 
 	elem := iterador.Borrar()
-
 
 	if hash.ocupaMuchaMemoria() {
 		hash.redimensionar(len(hash.elementos) / 2)
