@@ -12,7 +12,6 @@ func llamadosBinariosRango(minimo int, maximo int, visitar func(int)) {
 		return
 	}
 	medio := (minimo + maximo) >> 1
-	//fmt.Printf("\nbin : %d\n",medio)
 	visitar(medio)
 	llamadosBinariosRango(minimo, medio, visitar)
 	llamadosBinariosRango(medio, maximo, visitar)
@@ -62,6 +61,20 @@ func testHeapVacio[T comparable](t *testing.T, heap TDAHeap.ColaPrioridad[T]) {
 func TestHeapVacio(t *testing.T) {
 	t.Log("Comprueba que el Heap vacio no tiene elementos y los panics")
 	testHeapVacio(t, TDAHeap.CrearHeap[string](funcionCompararBasicaStrings))
+}
+func TestHeapAgregadoArregloVacio(t *testing.T) {
+	t.Log("Se testeara crear heap arr con un arreglo vacio y se verificara lo este")
+	testHeapVacio(t, TDAHeap.CrearHeapArr[int]([]int{}, funcionCompararBasicaInts))
+}
+func TestHeapAgregadoArregloSinModificar(t *testing.T) {
+	t.Log("Crear un heap con un arreglo con los numeros del 1 al 32 de forma desordenada, se verificara no se modifique el arreglo original")
+	arr1 := crearArregloNumeros(0, 32)
+	arr2 := crearArregloNumeros(0, 32)
+	TDAHeap.CrearHeapArr[int](arr1, funcionCompararBasicaInts)
+
+	for i, valor := range arr1 {
+		require.EqualValues(t, valor, arr2[i], fmt.Sprintf("No eran iguales en posicion %d", i))
+	}
 }
 
 func TestHeapAgregadoBasico(t *testing.T) {

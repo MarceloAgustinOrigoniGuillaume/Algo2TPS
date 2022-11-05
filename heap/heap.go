@@ -15,20 +15,17 @@ func downHeap[T comparable](elementos []T, cmp func(T, T) int, indice, ultimoInd
 	candidato := (swapInd << 1) + 1 // izq
 	if candidato <= ultimoIndice && cmp(elementos[swapInd], elementos[candidato]) < 0 {
 		swapInd = candidato
-	} else if candidato <= ultimoIndice {
 	}
 
 	candidato++ // der
 
 	if candidato <= ultimoIndice && cmp(elementos[swapInd], elementos[candidato]) < 0 {
 		swapInd = candidato
-	} else if candidato <= ultimoIndice {
 	}
 
 	if swapInd != indice {
 		swap(&elementos[indice], &elementos[swapInd])
 		downHeap(elementos, cmp, swapInd, ultimoIndice)
-	} else {
 	}
 }
 
@@ -75,11 +72,13 @@ func CrearHeapArr[T comparable](arreglo []T, cmp func(T, T) int) ColaPrioridad[T
 	heap.elementos = arreglo
 	heap.ultimoIndice = len(arreglo) - 1
 
-	inicializarHeapOrder(heap.elementos, heap.cmp, heap.ultimoIndice)
-
 	if len(arreglo) < _CAPACIDAD_INICIAL { // se asegura la capacidad inicial
 		heap.redimensionar(_CAPACIDAD_INICIAL)
+	} else {
+		heap.redimensionar(len(arreglo)) // se asegura que sea una copia
 	}
+
+	inicializarHeapOrder(heap.elementos, heap.cmp, heap.ultimoIndice)
 
 	return heap
 }
