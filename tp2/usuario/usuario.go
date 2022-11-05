@@ -6,23 +6,28 @@ import "strings"
 func Compare(user,other string) int{
 	nombre := strings.ToLower(user)
 	nombreOtro := strings.ToLower(other)
-	defaultValue := -1
+	toReturn := -1
 
 	min := len(nombre)
 	if len(nombreOtro) < min {
-		defaultValue = 1
+		toReturn = 1
 		min = len(nombreOtro)
 	} else if len(nombreOtro) == min{
-		defaultValue = 0
+		toReturn = 0
 	}
-
+	
 	for i:= 0; i<min; i++{
-		if nombre[i] > nombreOtro[i]{
+		if nombre[i]<nombreOtro[i]{
 			return -1
-		}
+		} else if nombre[i]>nombreOtro[i]{
+			return 1
+		} 
 	}
 
-	return defaultValue
+
+
+
+	return toReturn
 
 }
 

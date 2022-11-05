@@ -8,11 +8,11 @@ import "errors"
 
 const (
 	ERROR_YA_LOGEO = "Error: Ya habia un usuario loggeado"
-	ERROR_USUARIO_INVALIDO = "Error: Usuario no existente"
-	ERROR_NO_LOGEO = "Error: No habia usuario loggeado"
-	ERROR_VER_POST = "Usuario loggeado o no hay mas posts para ver"
+	ERROR_USUARIO_INVALIDO = "Error: usuario no existente"
+	ERROR_NO_LOGEO = "Error: no habia usuario loggeado"
+	ERROR_VER_POST = "Usuario no loggeado o no hay mas posts para ver"
 	ERROR_LIKE_POST = "Error: Usuario no loggeado o Post inexistente"
-	ERROR_MOSTRAR_LIKES_POST = "Post inexistente o sin likes"
+	ERROR_MOSTRAR_LIKES_POST = "Error: Post inexistente o sin likes"
 )
 
 type Sesion interface {

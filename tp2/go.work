@@ -1,9 +1,9 @@
 go 1.19
 
 use (
-	.
-	..\abb
-	..\hash
-	..\heap
-	..\pila
+        .
+        ../abb
+        ../hash
+        ../heap
+        ../pila
 )
