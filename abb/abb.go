@@ -1,7 +1,8 @@
 package diccionario
 
-import "diccionario/pila"
-
+import "pila"
+import hash "hash/interface"
+//IterDicc
 const (
 	ERROR_NO_ESTABA        = "La clave no pertenece al diccionario"
 	ERROR_ITERADOR_TERMINO = "El iterador termino de iterar"
@@ -181,13 +182,13 @@ func (abb *abbStruct[K, V]) IterarRango(desde *K, hasta *K, visitar func(clave K
 }
 
 // IteradorRango crea un IterDiccionario que sólo itere por las claves que se encuentren en el rango indicado
-func (abb *abbStruct[K, V]) IteradorRango(desde *K, hasta *K) IterDiccionario[K, V] {
+func (abb *abbStruct[K, V]) IteradorRango(desde *K, hasta *K) hash.IterDiccionario[K, V] {
 
 	return crearIteradorABB(abb.raiz, desde, hasta, abb.cmp)
 }
 
 // Iterador devuelve un IterDiccionario para este Diccionario
-func (abb *abbStruct[K, V]) Iterador() IterDiccionario[K, V] {
+func (abb *abbStruct[K, V]) Iterador() hash.IterDiccionario[K, V] {
 	return abb.IteradorRango(nil, nil)
 }
 
@@ -222,7 +223,7 @@ func (iterador *iteradorABB[K, V]) agregarNodos(nodo *nodoABB[K, V]) {
 }
 
 func crearIteradorABB[K comparable, V any](nodo *nodoABB[K, V], desde *K, hasta *K,
-	cmp func(K, K) int) IterDiccionario[K, V] {
+	cmp func(K, K) int) hash.IterDiccionario[K, V] {
 
 	iterador := new(iteradorABB[K, V])
 	iterador.aVisitar = pila.CrearPilaDinamica[*nodoABB[K, V]]()

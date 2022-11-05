@@ -1,4 +1,4 @@
-module abb
+module diccionario
 
 go 1.18
 
