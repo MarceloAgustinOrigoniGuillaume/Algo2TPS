@@ -1,7 +1,7 @@
 package diccionario_test
 
 import (
-	TDAABB "abb"
+	TDAABB "diccionario"
 	"fmt"
 	"github.com/stretchr/testify/require"
 	"math/rand"
@@ -28,6 +28,10 @@ func funcionCompararBasicaStrings(elemento1 string, elemento2 string) int {
 }
 
 func funcionCompararBasicaInts(elemento1 int, elemento2 int) int {
+	return elemento1 - elemento2
+}
+func funcionCompararBasicaIntsS(elemento1 int, elemento2 int) int {
+	fmt.Printf("%d - %d = %d\n", elemento1, elemento2, elemento1-elemento2)
 	return elemento1 - elemento2
 }
 
@@ -467,5 +471,33 @@ func TestVolumen(t *testing.T) {
 	}
 
 	require.EqualValues(t, tamanio, i, "No recorrio una cantidad correcta de elementos iterador externo por rango")
+
+}
+
+func TestCasoBorde(t *testing.T) {
+	t.Log("Se buscara por nodos fantasmas, repetidos, en el caso borrar cuando se hace el ingresado tal que el abb hace al borrar el swap con el mayor de los menores, o menor de los mayores. Y ademas ese hijo mayor de los menores tiene un menor")
+	dic := TDAABB.CrearABB[int, string](funcionCompararBasicaInts)
+	dic.Guardar(0, "U")
+	dic.Guardar(1, "U")
+	dic.Guardar(4, "U")
+	dic.Guardar(5, "U")
+	dic.Guardar(3, "U")
+	dic.Guardar(2, "U")
+
+	dic.Borrar(4)
+	require.False(t, dic.Pertenece(4))
+	require.True(t, dic.Pertenece(2))
+
+	repetidos := make([]bool, 6)
+	strRepetidos := " "
+	dic.Iterar(func(clave int, valor string) bool {
+		if repetidos[clave] {
+			strRepetidos += strconv.Itoa(clave) + " "
+		}
+		repetidos[clave] = true
+		return true
+	})
+	require.EqualValues(t, 5, dic.Cantidad(), fmt.Sprintf("No borro correctamente"))
+	require.EqualValues(t, " ", strRepetidos, "Se encontro esos repetidos... ")
 
 }

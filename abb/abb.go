@@ -95,31 +95,22 @@ func (abb *abbStruct[K, V]) Obtener(clave K) V {
 func swapBorrar[K comparable, V any](borrado **nodoABB[K, V]) {
 	nodoBorrado := *borrado
 
-	if nodoBorrado == nil {
-		return
-	}
-
-	if nodoBorrado.izq == nil && nodoBorrado.der == nil {
-		(*borrado) = nil
-	} else if nodoBorrado.izq == nil {
+	if nodoBorrado.izq == nil {
 		(*borrado) = nodoBorrado.der
-	} else if nodoBorrado.der == nil {
+	} else if nodoBorrado.der == nil { // este if es medio innecesario pero ahorraria tener que hacer el caso recursivo
 		(*borrado) = nodoBorrado.izq
 	} else {
-		var siguienteAborrar *nodoABB[K, V]
-		if nodoBorrado.izq.der != nil {
-			siguienteAborrar = nodoBorrado.izq.der
-			for siguienteAborrar.der != nil {
-				siguienteAborrar = siguienteAborrar.der
-			}
-
-		} else {
-			siguienteAborrar = nodoBorrado.izq
+		siguienteAborrar := &(nodoBorrado.izq)
+		for (*siguienteAborrar).der != nil { // mayor de los menores
+			siguienteAborrar = &((*siguienteAborrar).der)
 		}
 
-		nodoBorrado.valor = siguienteAborrar.valor
-		nodoBorrado.clave = siguienteAborrar.clave
-		swapBorrar(&siguienteAborrar)
+		nodoBorrado.valor = (*siguienteAborrar).valor
+		nodoBorrado.clave = (*siguienteAborrar).clave
+
+		if (*siguienteAborrar).izq != nil {
+			(*siguienteAborrar) = (*siguienteAborrar).izq
+		}
 	}
 }
 
