@@ -1,0 +1,9 @@
+go 1.19
+
+use (
+	.
+	../cola
+	../lista
+	../pila
+	./sesion_votar
+)
