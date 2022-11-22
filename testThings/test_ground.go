@@ -1,55 +1,51 @@
 package test_ground
+
 import "fmt"
 
-type Interfaz1 interface{
+type Interfaz1 interface {
 	Nombre() string
 }
 
-type Interfaz2 interface{
+type Interfaz2 interface {
 	Interfaz1
 	Edad() int
 }
 
-type persona struct{
+type persona struct {
 	nombre string
-	edad int
+	edad   int
 }
 
-
-
-func CrearPersona(nombre string, edad int) Interfaz2{
-	return &persona{nombre,edad};
+func CrearPersona(nombre string, edad int) Interfaz2 {
+	return &persona{nombre, edad}
 }
 
-func (per *persona) Nombre() string{
+func (per *persona) Nombre() string {
 	return per.nombre
 }
-func (per *persona) Edad() int{
+func (per *persona) Edad() int {
 	return per.edad
 }
 
-type GenericInterface[T Interfaz1] interface{
+type GenericInterface[T Interfaz1] interface {
 	DameDato() T
 	PoneleDato(T)
 }
 
-type testStruct[T Interfaz1] struct{
+type testStruct[T Interfaz1] struct {
 	dato T
 }
 
-
-
-func CrearTestStruct[T Interfaz1]() GenericInterface[T]{
+func CrearTestStruct[T Interfaz1]() GenericInterface[T] {
 	return &testStruct[T]{}
 }
 
-func (t *testStruct[T]) DameDato() T{
-	return t.dato	
+func (t *testStruct[T]) DameDato() T {
+	return t.dato
 }
 
-
-func (t *testStruct[T]) PoneleDato(dato T){
+func (t *testStruct[T]) PoneleDato(dato T) {
 	t.dato = dato
 
-	fmt.Printf("SET DATO %v \n",dato);
+	fmt.Printf("SET DATO %v \n", dato)
 }

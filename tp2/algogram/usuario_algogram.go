@@ -1,5 +1,4 @@
 package algogram
-//import "tp2/interfaces"
 
 type usuarioAlgogram struct {
 	nombre string
