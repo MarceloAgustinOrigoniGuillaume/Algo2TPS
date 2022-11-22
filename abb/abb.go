@@ -3,6 +3,7 @@ package diccionario
 import "pila"
 import hash "hash/interface"
 
+
 const (
 	ERROR_NO_ESTABA        = "La clave no pertenece al diccionario"
 	ERROR_ITERADOR_TERMINO = "El iterador termino de iterar"
@@ -97,13 +98,10 @@ func swapBorrar[K comparable, V any](borrado **nodoABB[K, V]) {
 	nodoBorrado := *borrado
 
 	if nodoBorrado.izq == nil {
-		fmt.Printf("A borrar no tenia hijo izq? ? %v \n", nodoBorrado)
 		(*borrado) = nodoBorrado.der
 	} else if nodoBorrado.der == nil { // este if es medio innecesario pero ahorraria tener que hacer el caso recursivo
-		fmt.Printf("A borrar tenia hijo izq pero no der ? %v \n", nodoBorrado)
 		(*borrado) = nodoBorrado.izq
 	} else {
-		fmt.Printf("A borrar tenia hijo izq y der ? %v \n", nodoBorrado)
 		siguienteAborrar := &(nodoBorrado.izq)
 		for (*siguienteAborrar).der != nil { // mayor de los menores
 			siguienteAborrar = &((*siguienteAborrar).der)
@@ -125,7 +123,6 @@ func (abb *abbStruct[K, V]) Borrar(clave K) V {
 	abb.panicNoEstaba(nodoBorrar)
 
 	res := (*nodoBorrar).valor
-	fmt.Printf("A borrar ? %v \n", clave)
 	swapBorrar(nodoBorrar)
 	abb.cantidad--
 	return res

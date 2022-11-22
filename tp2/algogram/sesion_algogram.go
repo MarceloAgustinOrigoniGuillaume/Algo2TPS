@@ -1,12 +1,10 @@
-package sesion
+package algogram
 
-import hash "hash/hashCerrado"
 import "strconv"
 import "errors"
 
 import "tp2/utilities"
-import "tp2/posts"
-import "tp2/usuarios"
+import "tp2/interfaces"
 import "tp2/managers"
 
 const (
@@ -18,36 +16,33 @@ const (
 	ERROR_MOSTRAR_LIKES_POST = "Error: Post inexistente o sin likes"
 )
 
-type Sesion interface {
-	Login(string) error
-	Logout() error
-	Publicar(string) error
-	VerSiguientePost() (string, error)
-	Likear(string) error
-	MostrarLikes(string) (string, error)
-}
+type tUsuario = *usuarioAlgogram;
+type tPost = *postAlgogram[tUsuario];
+
 
 type sesionStruct struct {
-	postManager managers.PostManager[int,usuarios.UsuarioAlgogram,posts.PostAlgogram]
-	userManager managers.UserManager[string,usuarios.UsuarioAlgogram,int,posts.PostAlgogram]
-	loggeado    *usuario.UsuarioAlgogram
+	postManager interfaces.IdManager[int,tPost]
+	userManager interfaces.IdManager[string,tUsuario] //managers.UserManager[string,tUsuario,int,tPost]
+	recomendador interfaces.Recomendador[int,tUsuario,tPost]
+	conexionesLoggeado    interfaces.MapConexiones[tUsuario,tPost]
 }
 
-
-func CrearSesion(archivo_usuarios string) (Sesion, error) {
+func InicializarAlgogram(archivo_usuarios string) (interfaces.SesionManager, error) {
 	sesion := new(sesionStruct)
-	sesion.postManager = managers.CrearPostManager[usuarios.UsuarioAlgogram,posts.PostAlgogram]()
-	sesion.userManager = managers.CrearUserManagerAlgogram[usuarios.UsuarioAlgogram,int,posts.PostAlgogram](sesion.postManager.AntesQue)
+	sesion.postManager = managers.CrearNumericalIdManager[tPost]()
+	sesion.userManager = managers.CrearUserManagerAlgogram[tUsuario]()
+	sesion.recomendador = managers.CrearEmptyRecomendadorAlgogram[tUsuario,tPost]()
 	
-	ind:= 0
+	ultimoIndice:= 0
 
 	err := utilities.LeerArchivo(archivo_usuarios, func(nombre string) bool {
-		sesion.userManager.Agregar(usuario.CrearUsuarioAlgogram(nombre, ind))
-		ind++
+		usuario := crearUsuarioAlgogram(nombre, ultimoIndice)
+		sesion.userManager.Agregar(usuario)
+		sesion.recomendador.AgregarUsuario(usuario)
+		ultimoIndice++
 		return true
 	})
 
-	
 	if err != nil {
 		return nil, err
 	}
@@ -56,56 +51,61 @@ func CrearSesion(archivo_usuarios string) (Sesion, error) {
 }
 
 func (sesion *sesionStruct) Login(nombre string) error {
-	if sesion.loggeado != nil {
+	if sesion.conexionesLoggeado != nil {
 		return errors.New(ERROR_YA_LOGEO)
 	}
 	if !sesion.userManager.Existe(nombre) {
 		return errors.New(ERROR_USUARIO_INVALIDO)
 	}
 
-	sesion.loggeado = sesion.userManager.Obtener(nombre)
-
+	sesion.conexionesLoggeado = sesion.recomendador.ObtenerRecomendaciones(sesion.userManager.Obtener(nombre))
 
 	return nil
 }
 func (sesion *sesionStruct) Logout() error {
-	if sesion.loggeado == nil {
+	if sesion.conexionesLoggeado == nil {
 		return errors.New(ERROR_NO_LOGEO)
 	}
 
-	sesion.loggeado = nil
+	sesion.conexionesLoggeado = nil
 	return nil
 
 }
 func (sesion *sesionStruct) Publicar(contenido string) error {
-	if sesion.loggeado == nil {
+	if sesion.conexionesLoggeado == nil {
 		return errors.New(ERROR_NO_LOGEO)
 	}
 
-	post:= posts.CrearPostAlgogram(sesion.loggeado, contenido)
-	id := sesion.postManager.Agregar(post)
-	sesion.userManager.AgregarPost(id,post)
+	post:= crearPostAlgogram(sesion.postManager.NuevoId(),sesion.conexionesLoggeado.VerNodo(), contenido)
+
+	sesion.postManager.Agregar(post)
+	sesion.recomendador.AgregarPost(sesion.conexionesLoggeado.VerNodo(),post)
 
 	return nil
 }
 
 func (sesion *sesionStruct) VerSiguientePost() (string, error) {
-	if sesion.loggeado == nil || sesion.loggeado.Feed().EstaVacia() {
+	if sesion.conexionesLoggeado == nil {
 		return "", errors.New(ERROR_VER_POST)
 	}
 
-	return sesion.postManager.ObtenerPost(sesion.loggeado.Feed().Desencolar()).String(), nil
+	post:= sesion.conexionesLoggeado.ObtenerConexion()
+	if(post == nil){
+		return "", errors.New(ERROR_VER_POST)
+	}
+
+	return (*post).String(), nil
 
 }
 func (sesion *sesionStruct) Likear(idStr string) error {
 
 	id, err := strconv.Atoi(idStr)
 
-	if sesion.loggeado == nil || err != nil || !sesion.postManager.Existe(id){
+	if sesion.conexionesLoggeado == nil || err != nil || !sesion.postManager.Existe(id){
 		return errors.New(ERROR_LIKE_POST)
 	}
 	
-	sesion.postManager.ObtenerPost(id).AgregarLike(sesion.loggeado)
+	sesion.postManager.Obtener(id).AgregarLike(sesion.conexionesLoggeado.VerNodo())
 	
 	return nil
 }
@@ -116,7 +116,7 @@ func (sesion *sesionStruct) MostrarLikes(idStr string) (string, error) {
 		return "", errors.New(ERROR_MOSTRAR_LIKES_POST)
 	}
 
-	post := sesion.postManager.ObtenerPost(id)
+	post := sesion.postManager.Obtener(id)
 	if post.CantidadLikes() == 0 {
 		return "", errors.New(ERROR_MOSTRAR_LIKES_POST)
 	}
