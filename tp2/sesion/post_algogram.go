@@ -8,16 +8,15 @@ import "fmt"
 
 // Se puso el generico por si se quiere cambiar
 type postAlgogram[D interfaces.UsuarioAlgogram] struct {
-	id     int
+	id        int
 	autor     D
 	contenido string
 	likes     abb.DiccionarioOrdenado[string, D]
 }
 
-func crearPostAlgogram[D interfaces.UsuarioAlgogram](id int,autor D, contenido string) *postAlgogram[D]{//interfaces.PostLikeable[int,D] {
-	return &postAlgogram[D]{id,autor, contenido, abb.CrearABB[string,D](utilities.CompareLexico)}
+func crearPostAlgogram[D interfaces.UsuarioAlgogram](id int, autor D, contenido string) *postAlgogram[D] { //interfaces.PostLikeable[int,D] {
+	return &postAlgogram[D]{id, autor, contenido, abb.CrearABB[string, D](utilities.CompareLexico)}
 }
-
 
 func (post *postAlgogram[D]) Id() int {
 	return post.id
@@ -45,5 +44,5 @@ func (post *postAlgogram[D]) MostrarLikes() string {
 }
 
 func (post *postAlgogram[D]) String() string {
-	return fmt.Sprintf("Post ID %d\n%s dijo: %s\nLikes: %d",post.id,post.Autor().Nombre(), post.contenido, post.CantidadLikes())
+	return fmt.Sprintf("Post ID %d\n%s dijo: %s\nLikes: %d", post.id, post.Autor().Nombre(), post.contenido, post.CantidadLikes())
 }
