@@ -1,7 +1,8 @@
 package main
 
 import "os"
-import algogram "tp2/sesion"
+import "tp2/algogram"
+import "tp2/interfaces"
 import "strings"
 import "bufio"
 import "fmt"
@@ -17,7 +18,7 @@ func devolverErrorODefault(def string, err error) string {
 	return def
 }
 
-func AccionDesdeComando(sesion algogram.Sesion, comando string) string {
+func AccionDesdeComando(sesion interfaces.SesionManager, comando string) string {
 	if comando == "logout" {
 		return devolverErrorODefault("Adios", sesion.Logout())
 	} else if comando == "ver_siguiente_feed" {
@@ -55,7 +56,7 @@ func main() {
 		return
 	}
 
-	sesion, err := algogram.CrearSesion(os.Args[1])
+	sesion, err := algogram.InicializarAlgogram(os.Args[1])
 	if err != nil {
 		fmt.Fprintf(os.Stdout, "%s\n", err.Error())
 		return

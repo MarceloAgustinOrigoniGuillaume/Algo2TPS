@@ -1,4 +1,4 @@
-package sesion
+package algogram
 
 import abb "diccionario"
 

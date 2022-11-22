@@ -1,4 +1,4 @@
-package sesion
+package algogram
 
 import "strconv"
 import "errors"
@@ -6,9 +6,6 @@ import "errors"
 import "tp2/utilities"
 import "tp2/interfaces"
 import "tp2/managers"
-
-//import "tp2/posts"
-//import "tp2/usuarios"
 
 const (
 	ERROR_YA_LOGEO           = "Error: Ya habia un usuario loggeado"
@@ -22,15 +19,6 @@ const (
 type tUsuario = *usuarioAlgogram;
 type tPost = *postAlgogram[tUsuario];
 
-type Sesion interface {
-	Login(string) error
-	Logout() error
-	Publicar(string) error
-	VerSiguientePost() (string, error)
-	Likear(string) error
-	MostrarLikes(string) (string, error)
-}
-
 
 type sesionStruct struct {
 	postManager interfaces.IdManager[int,tPost]
@@ -39,7 +27,7 @@ type sesionStruct struct {
 	conexionesLoggeado    interfaces.MapConexiones[tUsuario,tPost]
 }
 
-func CrearSesion(archivo_usuarios string) (Sesion, error) {
+func InicializarAlgogram(archivo_usuarios string) (interfaces.SesionManager, error) {
 	sesion := new(sesionStruct)
 	sesion.postManager = managers.CrearNumericalIdManager[tPost]()
 	sesion.userManager = managers.CrearUserManagerAlgogram[tUsuario]()
