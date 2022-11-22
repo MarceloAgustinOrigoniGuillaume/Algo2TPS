@@ -1,10 +1,10 @@
-package posts
-
-import "tp2/usuario"
+package interfaces
 
 // Lo basico y escencial para ser considerado un post
 // El tipo del autor se deja a criterio, normalmente dependera de la implementacion de Post
-type Post[T usuario.DatosUsuario] interface { 
+type Post[I comparable, T DatosUsuario] interface { 
+	comparable
+	Id() I
 	Autor() T
 	String() string
 }
@@ -12,11 +12,16 @@ type Post[T usuario.DatosUsuario] interface {
 
 // Un post con funcionalidad de likes
 
-type PostLikeable[T usuario.DatosUsuario] interface {
-	Post[T]
+type PostLikeable[I comparable,T DatosUsuario] interface {
+	Post[I,T]
 
 	AgregarLike(T)
 	CantidadLikes() int
 	MostrarLikes() string
 
+}
+
+
+type PostAlgogram[U UsuarioAlgogram] interface {
+	PostLikeable[int,U]
 }

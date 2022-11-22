@@ -3,7 +3,7 @@ package utilities
 import "os"
 import "bufio"
 import "strings"
-
+//../../pruebaTp2/users_test.txt
 func LeerArchivo(url string, haceAlgo func(string) bool) error {
 	archivo, error := os.Open(url)
 	if error != nil {
