@@ -1,6 +1,6 @@
 package algogram
 
-import abb "diccionario"
+import "tp2/diccionario/abb"
 
 import "tp2/interfaces"
 import "tp2/utilities"

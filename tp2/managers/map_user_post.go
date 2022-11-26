@@ -1,6 +1,6 @@
 package managers
 
-import heap "cola_prioridad"
+import heap "tp2/heap"
 import "tp2/interfaces"
 
 // Implementacion de un Mapa de conexiones de usuarios a posts
