@@ -1,7 +1,7 @@
 package main
 
 import "os"
-import "tp2/algogram"
+import "tp2/redSocial"
 import "tp2/interfaces"
 import "strings"
 import "bufio"
