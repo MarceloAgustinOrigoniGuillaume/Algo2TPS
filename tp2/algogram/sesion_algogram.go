@@ -30,7 +30,7 @@ type sesionStruct struct {
 func InicializarAlgogram(archivo_usuarios string) (interfaces.SesionManager, error) {
 	sesion := new(sesionStruct)
 	sesion.postManager = managers.CrearNumericalIdManager[tPost]()
-	sesion.userManager = managers.CrearUserManagerAlgogram[tUsuario]()
+	sesion.userManager = CrearUserManagerAlgogram[tUsuario]()
 	sesion.recomendador = managers.CrearEmptyRecomendadorAlgogram[tUsuario,tPost]()
 	
 	ultimoIndice:= 0

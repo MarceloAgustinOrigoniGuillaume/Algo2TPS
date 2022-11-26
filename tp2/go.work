@@ -2,8 +2,4 @@ go 1.19
 
 use (
         .
-        ../abb
-        ../hash
-        ../heap
-        ../pila
 )

@@ -1,7 +1,7 @@
-package managers
+package algogram
 
 import "tp2/interfaces"
-import hash "hash/hashCerrado"
+import hash "tp2/diccionario"
 
 
 // Un id Manager con Nombre como id, y usuarios como dato
