@@ -3,7 +3,6 @@ package diccionario
 import "pila"
 import hash "hash/interface"
 
-
 const (
 	ERROR_NO_ESTABA        = "La clave no pertenece al diccionario"
 	ERROR_ITERADOR_TERMINO = "El iterador termino de iterar"

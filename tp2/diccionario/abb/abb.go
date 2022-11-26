@@ -3,7 +3,6 @@ package abb
 import "tp2/pila"
 import hash "tp2/diccionario"
 
-
 const (
 	ERROR_NO_ESTABA        = "La clave no pertenece al diccionario"
 	ERROR_ITERADOR_TERMINO = "El iterador termino de iterar"

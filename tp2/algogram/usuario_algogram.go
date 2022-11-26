@@ -6,7 +6,7 @@ type usuarioAlgogram struct {
 }
 
 func crearUsuarioAlgogram(nombre string, indice int) *usuarioAlgogram {
-	return &usuarioAlgogram{nombre,indice}
+	return &usuarioAlgogram{nombre, indice}
 }
 
 func (user *usuarioAlgogram) Nombre() string {

@@ -3,8 +3,8 @@ package diccionario_test
 import (
 	"fmt"
 	"github.com/stretchr/testify/require"
-	TDADiccionario "tp2/diccionario"
 	"testing"
+	TDADiccionario "tp2/diccionario"
 )
 
 var TAMS_VOLUMEN = []int{12500, 25000, 50000, 100000, 200000, 400000}

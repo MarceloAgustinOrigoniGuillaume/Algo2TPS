@@ -3,8 +3,8 @@ package pila_test
 import (
 	"fmt"
 	"github.com/stretchr/testify/require"
-	TDAPila "tp2/pila"
 	"testing"
+	TDAPila "tp2/pila"
 )
 
 func verificarPilaEstaVacia[T any](t *testing.T, pila TDAPila.Pila[T]) {

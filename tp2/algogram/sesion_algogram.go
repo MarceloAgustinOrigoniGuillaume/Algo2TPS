@@ -16,24 +16,23 @@ const (
 	ERROR_MOSTRAR_LIKES_POST = "Error: Post inexistente o sin likes"
 )
 
-type tUsuario = *usuarioAlgogram;
-type tPost = *postAlgogram[tUsuario];
-
+type tUsuario = *usuarioAlgogram
+type tPost = *postAlgogram[tUsuario]
 
 type sesionStruct struct {
-	postManager interfaces.IdManager[int,tPost]
-	userManager interfaces.IdManager[string,tUsuario] //managers.UserManager[string,tUsuario,int,tPost]
-	recomendador interfaces.Recomendador[int,tUsuario,tPost]
-	conexionesLoggeado    interfaces.MapConexiones[tUsuario,tPost]
+	postManager        interfaces.IdManager[int, tPost]
+	userManager        interfaces.IdManager[string, tUsuario] //managers.UserManager[string,tUsuario,int,tPost]
+	recomendador       interfaces.Recomendador[int, tUsuario, tPost]
+	conexionesLoggeado interfaces.MapConexiones[tUsuario, tPost]
 }
 
 func InicializarAlgogram(archivo_usuarios string) (interfaces.SesionManager, error) {
 	sesion := new(sesionStruct)
 	sesion.postManager = managers.CrearNumericalIdManager[tPost]()
 	sesion.userManager = CrearUserManagerAlgogram[tUsuario]()
-	sesion.recomendador = managers.CrearEmptyRecomendadorAlgogram[tUsuario,tPost]()
-	
-	ultimoIndice:= 0
+	sesion.recomendador = managers.CrearEmptyRecomendadorAlgogram[tUsuario, tPost]()
+
+	ultimoIndice := 0
 
 	err := utilities.LeerArchivo(archivo_usuarios, func(nombre string) bool {
 		usuario := crearUsuarioAlgogram(nombre, ultimoIndice)
@@ -76,10 +75,10 @@ func (sesion *sesionStruct) Publicar(contenido string) error {
 		return errors.New(ERROR_NO_LOGEO)
 	}
 
-	post:= crearPostAlgogram(sesion.postManager.NuevoId(),sesion.conexionesLoggeado.VerNodo(), contenido)
+	post := crearPostAlgogram(sesion.postManager.NuevoId(), sesion.conexionesLoggeado.VerNodo(), contenido)
 
 	sesion.postManager.Agregar(post)
-	sesion.recomendador.AgregarPost(sesion.conexionesLoggeado.VerNodo(),post)
+	sesion.recomendador.AgregarPost(sesion.conexionesLoggeado.VerNodo(), post)
 
 	return nil
 }
@@ -89,8 +88,8 @@ func (sesion *sesionStruct) VerSiguientePost() (string, error) {
 		return "", errors.New(ERROR_VER_POST)
 	}
 
-	post:= sesion.conexionesLoggeado.ObtenerConexion()
-	if(post == nil){
+	post := sesion.conexionesLoggeado.ObtenerConexion()
+	if post == nil {
 		return "", errors.New(ERROR_VER_POST)
 	}
 
@@ -101,18 +100,18 @@ func (sesion *sesionStruct) Likear(idStr string) error {
 
 	id, err := strconv.Atoi(idStr)
 
-	if sesion.conexionesLoggeado == nil || err != nil || !sesion.postManager.Existe(id){
+	if sesion.conexionesLoggeado == nil || err != nil || !sesion.postManager.Existe(id) {
 		return errors.New(ERROR_LIKE_POST)
 	}
-	
+
 	sesion.postManager.Obtener(id).AgregarLike(sesion.conexionesLoggeado.VerNodo())
-	
+
 	return nil
 }
 func (sesion *sesionStruct) MostrarLikes(idStr string) (string, error) {
 	id, err := strconv.Atoi(idStr)
-	
-	if err != nil || !sesion.postManager.Existe(id){
+
+	if err != nil || !sesion.postManager.Existe(id) {
 		return "", errors.New(ERROR_MOSTRAR_LIKES_POST)
 	}
 

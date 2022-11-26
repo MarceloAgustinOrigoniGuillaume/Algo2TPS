@@ -1,12 +1,12 @@
 package abb_test
 
 import (
-	TDAABB "tp2/diccionario/abb"
 	"fmt"
 	"github.com/stretchr/testify/require"
 	"math/rand"
 	"strconv"
 	"testing"
+	TDAABB "tp2/diccionario/abb"
 )
 
 func funcionCompararBasicaStrings(elemento1 string, elemento2 string) int {
