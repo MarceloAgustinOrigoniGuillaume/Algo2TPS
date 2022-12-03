@@ -94,20 +94,35 @@ func CrearAgenciaViajes(archivoLugar string) (AgenciaViajes, error) {
 	return agencia, pj.LeerPJ(archivoLugar, agencia.grafoLugar, agencia.readCiudad, strconv.Atoi)
 }
 
-func (agencia *agenciaStruct) iterarCiudadesCamino(ciudades []string, visitar func(bfr, act ciudadStruct) bool) {
+func (agencia *agenciaStruct) iterarCiudadesCamino(ciudades []string, visitar func(bfr, act ciudadStruct) bool) string {
 	bfr_ciudad := agencia.indexadoCiudades.Obtener(ciudades[0])
+
+	res := ciudades[0]
+	tiempoTotal := 0
+	anterior := ciudades[0]
 
 	var act_ciudad ciudadStruct
 
 	for _, nombre_ciudad := range ciudades[1:] {
 		act_ciudad = agencia.indexadoCiudades.Obtener(nombre_ciudad)
 
+		// Analisis camino
+		res += " -> " + nombre_ciudad
+
+		tiempoTotal += agencia.grafoLugar.ObtenerPeso(anterior, nombre_ciudad)
+		anterior = nombre_ciudad
+
+		// Visitar
 		if !visitar(bfr_ciudad, act_ciudad) {
-			return
+			res += fmt.Sprintf("\nTiempo total:%d", tiempoTotal)
+			return res
 		}
 
 		bfr_ciudad = act_ciudad
+
 	}
+	res += fmt.Sprintf("\nTiempo total:%d", tiempoTotal)
+	return res
 }
 
 func (agencia *agenciaStruct) Ir(desde, hasta, outFile string) (string, error) {
@@ -122,20 +137,14 @@ func (agencia *agenciaStruct) Ir(desde, hasta, outFile string) (string, error) {
 		return "", libGrafos.ErrorRecorrido()
 	}
 
-	anterior := caminoEsp[0]
-	res := fmt.Sprintf("Camino desde %s hasta %s", desde, hasta)
-	for _, ciudad := range caminoEsp[1:] {
-		res += fmt.Sprintf("\nIr de %s a %s", anterior, ciudad)
-		anterior = ciudad
-	}
-
 	builder, err := kml.CrearKML(outFile)
+	res := ""
 	if err == nil {
 		builder.StartKML(fmt.Sprintf("Camino desde %s hasta %s", desde, hasta))
 		origin := agencia.indexadoCiudades.Obtener(desde)
 
 		builder.AddPoint(origin.nombre, origin.latitud, origin.longitud)
-		agencia.iterarCiudadesCamino(caminoEsp, func(bfr_ciudad, act_ciudad ciudadStruct) bool {
+		res = agencia.iterarCiudadesCamino(caminoEsp, func(bfr_ciudad, act_ciudad ciudadStruct) bool {
 			builder.AddPoint(act_ciudad.nombre, act_ciudad.latitud, act_ciudad.longitud)
 			builder.AddLine( // add a line
 				fmt.Sprintf(NAME_KML_LINE, bfr_ciudad.nombre, act_ciudad.nombre), // title
@@ -208,19 +217,8 @@ func (agencia *agenciaStruct) ViajeDesde(desde string, outFile string) (string, 
 	if errC != nil {
 		return "", libGrafos.ErrorRecorrido()
 	}
-	res := camino[0]
-	tiempoTotal := 0
-	anterior := camino[0]
-	for _, elem := range camino[1:] {
 
-		res += " -> " + elem
-
-		tiempoTotal += agencia.grafoLugar.ObtenerPeso(anterior, elem)
-		anterior = elem
-	}
-
-	res += fmt.Sprintf("\nTiempo total:%d", tiempoTotal)
-
+	res := ""
 	builder, err := kml.CrearKML(outFile)
 
 	if err == nil {
@@ -231,7 +229,7 @@ func (agencia *agenciaStruct) ViajeDesde(desde string, outFile string) (string, 
 			return true
 		})
 
-		agencia.iterarCiudadesCamino(camino, func(bfr_ciudad, act_ciudad ciudadStruct) bool {
+		res = agencia.iterarCiudadesCamino(camino, func(bfr_ciudad, act_ciudad ciudadStruct) bool {
 			builder.AddLine( // add a line
 				fmt.Sprintf(NAME_KML_LINE, bfr_ciudad.nombre, act_ciudad.nombre), // title
 				bfr_ciudad.latitud, bfr_ciudad.longitud, // start coords
