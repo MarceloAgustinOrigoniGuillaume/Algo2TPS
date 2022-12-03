@@ -1,9 +1,9 @@
 package grafos
 
-import "golang.org/x/exp/constraints"
+//import "golang.org/x/exp/constraints"
 
 type Numero interface {
-	constraints.Integer
+	int | int8 | int32 | int64 | float32 | float64
 }
 
 type Grafo[V any, T any] interface {
