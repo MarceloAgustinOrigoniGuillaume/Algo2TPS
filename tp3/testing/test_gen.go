@@ -126,6 +126,7 @@ func main() {
 
 	if os.Args[1] == generators.EULER_TEST && len(os.Args) < 5 {
 		fmt.Printf("Insuficientes argumentos se requieren minimo 4 para euler, <Tipo de test a generar>,<directory tests>,<cantidad de tests>, <desde>")
+		return
 	}
 
 	var genFromVertices func(string, grafos.Grafo[string, int])

@@ -1,4 +1,4 @@
-La libreria testing cuenta con un generador de test.. test_gen.go
+La libreria testing cuenta con un generador de test.. test_gen.go, con build en ./test_gen
 
 Un programa que recibe una variable cantidad de parametros
 <Tipo de test a generar> <directory tests> <cantidad de tests>...
@@ -9,4 +9,8 @@ Volumen test ... Ninguno
 ... opcionales <cant vertices> <cant aristas> <dirigido> 
 
 
-Y para testear un test se usa test_file.go <ruta test>
+Y para testear un test se usa test_file.go <ruta test>, con build en ./test_file
+
+
+
+En utils.archivos se tiene shortcuts para url por si se quiere poner los outputs o inputs en cierta url
