@@ -225,11 +225,11 @@ func (agencia *agenciaStruct) ViajeDesde(desde string, outFile string) (string, 
 	if err == nil {
 		builder.StartKML(fmt.Sprintf("Camino desde y hasta %s pasando por todas las rutas", desde))
 
-		setAgregados := set.CrearSet[string](agencia.grafoLugar.CantidadVertices())
+		setAgregados := set.CrearSetWith[string](agencia.grafoLugar.CantidadVertices())
 		res = agencia.iterarCiudadesCamino(camino, func(bfr_ciudad, act_ciudad ciudadStruct) bool {
 
-			if setAgregados.Guardar(nombre) {
-				builder.AddPoint(nombre, ciudad.latitud, ciudad.longitud)
+			if setAgregados.Guardar(act_ciudad.nombre) {
+				builder.AddPoint(act_ciudad.nombre, act_ciudad.latitud, act_ciudad.longitud)
 			}
 
 			builder.AddLine( // add a line
