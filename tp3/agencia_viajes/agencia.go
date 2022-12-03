@@ -17,6 +17,7 @@ import "strings"
 const MSJ_REDUCIR = "Peso total: %d"
 const NAME_KML_LINE = "from: %s to: %s"
 const NAME_CAMINO = "Peso total: %f"
+const MSJ_TOTAL = "\nTiempo total: %d"
 
 type AgenciaViajes interface {
 	Ir(desde, hasta, outFile string) (string, error)
@@ -114,19 +115,18 @@ func (agencia *agenciaStruct) iterarCiudadesCamino(ciudades []string, visitar fu
 
 		// Visitar
 		if !visitar(bfr_ciudad, act_ciudad) {
-			res += fmt.Sprintf("\nTiempo total:%d", tiempoTotal)
+			res += fmt.Sprintf(MSJ_TOTAL, tiempoTotal)
 			return res
 		}
 
 		bfr_ciudad = act_ciudad
 
 	}
-	res += fmt.Sprintf("\nTiempo total:%d", tiempoTotal)
+	res += fmt.Sprintf(MSJ_TOTAL, tiempoTotal)
 	return res
 }
 
 func (agencia *agenciaStruct) Ir(desde, hasta, outFile string) (string, error) {
-
 	if !agencia.indexadoCiudades.Pertenece(desde) || !agencia.indexadoCiudades.Pertenece(hasta) {
 		return "", libGrafos.ErrorRecorrido()
 	}
