@@ -76,11 +76,9 @@ func (builder *KMLBuilder) AddPoint(name, latitud, longitud string) {
 		return
 	}
 
-	builder.file.WriteString(fmt.Sprintf(KML_POINT, name, latitud, longitud))
+	builder.file.WriteString(POINT_KML(name, latitud, longitud))
 }
 
 func (builder *KMLBuilder) AddLine(name, fromLatitud, fromLongitud, toLatitud, toLongitud string) {
-	builder.colaDeLineas.Encolar(func() {
-		builder.file.WriteString(fmt.Sprintf(KML_LINE, name, fromLatitud, fromLongitud, toLatitud, toLongitud))
-	})
+	builder.colaDeLineas.Encolar(func() { builder.file.WriteString(LINE_KML(name, fromLatitud, fromLongitud, toLatitud, toLongitud)) })
 }
