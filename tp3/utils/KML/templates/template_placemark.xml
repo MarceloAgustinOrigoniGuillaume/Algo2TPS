@@ -1,0 +1,6 @@
+		<Placemark>
+			<name>%s</name>
+			<Point>
+				<coordinates>%s, %s</coordinates>
+			</Point>
+		</Placemark>

@@ -1,0 +1,6 @@
+		<Placemark>
+			<name>%s</name>
+			<LineString>
+				<coordinates>%s, %s %s, %s</coordinates>
+			</LineString>
+		</Placemark>

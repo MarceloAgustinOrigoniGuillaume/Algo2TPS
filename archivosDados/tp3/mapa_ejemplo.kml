@@ -1,0 +1,58 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<kml xmlns="http://earth.google.com/kml/2.1">
+	<Document>
+		<name>Camino desde Doha hacia Uum Bab</name>
+
+		<Placemark>
+			<name>Doha</name>
+			<Point>
+				<coordinates>25.286549, 51.534741</coordinates>
+			</Point>
+		</Placemark>
+		<Placemark>
+			<name>Rayan</name>
+			<Point>
+				<coordinates>25.286211, 51.420431</coordinates>
+			</Point>
+		</Placemark>
+		<Placemark>
+			<name>Zekreet</name>
+			<Point>
+				<coordinates>25.483899, 50.847566</coordinates>
+			</Point>
+		</Placemark>
+		<Placemark>
+			<name>Dukhan</name>
+			<Point>
+				<coordinates>25.428096, 50.783242</coordinates>
+			</Point>
+		</Placemark>
+		<Placemark>
+			<name>Uum Bab</name>
+			<Point>
+				<coordinates>25.210765, 50.801382</coordinates>
+			</Point>
+		</Placemark>
+
+		<Placemark>
+			<LineString>
+				<coordinates>25.286549, 51.534741 25.286211, 51.420431</coordinates>
+			</LineString>
+		</Placemark>
+		<Placemark>
+			<LineString>
+				<coordinates>25.286211, 51.420431 25.483899, 50.847566</coordinates>
+			</LineString>
+		</Placemark>
+		<Placemark>
+			<LineString>
+				<coordinates>25.483899, 50.847566 25.428096, 50.783242</coordinates>
+			</LineString>
+		</Placemark>
+		<Placemark>
+			<LineString>
+				<coordinates>25.428096, 50.783242 25.210765, 50.801382</coordinates>
+			</LineString>
+		</Placemark>
+	</Document>
+</kml>
