@@ -7,6 +7,8 @@ import heap "tp3/heap"
 import hash "tp3/diccionario"
 import set "tp3/diccionario/set"
 
+import "fmt"
+
 func Dijkstra[V comparable, T grafos.Numero](grafo grafos.Grafo[V, T], origen V, visitar func(PairDistancia[V, T]) bool) {
 	distancias := hash.CrearHash[V, T]()
 	//distanciasMasCortas := hash.CrearHash[V,T]()
@@ -23,14 +25,16 @@ func Dijkstra[V comparable, T grafos.Numero](grafo grafos.Grafo[V, T], origen V,
 	var distanciaActual T
 	for !aVisitar.EstaVacia() {
 		pairVisitado = aVisitar.Desencolar()
-
 		if !visitados.Guardar(pairVisitado.Actual()) { // no se guardo, ya se analizo sus hijos
+
 			/*
 				// si esta distancia es menor, habia uno negativo, por lo que se podria tirar panic
 				// se asume nadie usaria Dijkstra con pesos negativos
 				distanciaActual = distancias.Obtener(pairVisitado.visitado)
 			*/
-			if pairVisitado.distancia < distanciaActual { // fue mejorado? hubo pesos negativos, mal, no uses dijkstra
+
+			if pairVisitado.distancia < distancias.Obtener(pairVisitado.Actual()) { // fue mejorado? hubo pesos negativos, mal, no uses dijkstra
+				fmt.Printf("\nHubo habia negativos? se quiso mejorar una segunda vez %v < %v\n", pairVisitado.distancia, distancias.Obtener(pairVisitado.Actual()))
 				return //panic("Se uso Dijkstra con pesos negativos, Dijkstra no funciona con pesos negativos")
 			}
 
