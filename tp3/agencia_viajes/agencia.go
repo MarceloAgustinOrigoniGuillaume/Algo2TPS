@@ -16,16 +16,6 @@ import "strings"
 
 
 
-func showGrados[T any](grafo grafos.Grafo[string,T]){
-	entradas := libGrafos.GradosDeEntrada(grafo)
-
-	libGrafos.GradosDeSalida(grafo).Iterar(func (ciudad string,grados int) bool{
-		fmt.Printf("De %s se va a %d lugares y se llega por %d\n",ciudad,grados,entradas.Obtener(ciudad))
-		return true
-	})
-
-}
-
 const MSJ_REDUCIR = "Peso total: %d"
 const NAME_KML_LINE = "from: %s to: %s"
 const NAME_CAMINO = "Peso total: %f"

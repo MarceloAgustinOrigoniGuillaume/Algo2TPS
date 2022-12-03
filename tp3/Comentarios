@@ -1,0 +1,12 @@
+La libreria testing cuenta con un generador de test.. test_gen.go
+
+Un programa que recibe una variable cantidad de parametros
+<Tipo de test a generar> <directory tests> <cantidad de tests>...
+
+Euler test.... <desde>
+Volumen test ... Ninguno
+
+... opcionales <cant vertices> <cant aristas> <dirigido> 
+
+
+Y para testear un test se usa test_file.go <ruta test>

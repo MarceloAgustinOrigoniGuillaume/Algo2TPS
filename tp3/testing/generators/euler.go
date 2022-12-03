@@ -1,12 +1,41 @@
 package generators
 
 import "tp3/grafos"
+import grafosLib "tp3/grafos/lib"
 import "math/rand"
-//import "fmt"
+import "fmt"
 
 const TIPO_CICLO_EULERIANO = 1
 const TIPO_CAMINO_EULERIANO = 2
 const TIPO_NADA = 0
+
+// Todavia no se tiene un generador perfecto....
+func CorroborarTipoTestEuler[V comparable, T grafos.Numero](grafo grafos.Grafo[V,T],tipo_act int) int{
+	if tipo_act != TIPO_NADA{ 
+		cant := 0
+		first := -1
+		summed := 0
+		grafosLib.DFS_ALL(grafo,func (_ V){cant++}, func(){
+			summed += cant
+			if first == -1{
+				first = cant
+				cant = 0
+				//fmt.Printf("---------->Una comp no tenia todos los vertices\n")
+				return
+			}
+
+			if cant != 1{
+				tipo_act = TIPO_NADA
+				fmt.Printf("---------->No era conexo ... found other component with %d, cambio a tipo 'No euleriano'\n",cant)
+			}
+			cant = 0
+
+		})
+	}
+
+	return tipo_act
+}
+
 
 
 func buildGrafoEulerDirigido[V comparable, T grafos.Numero](grafo grafos.Grafo[V,T], edge_quantity int,pesoProvider func(int) T,tipo int) (*V,*V,T){
@@ -131,8 +160,6 @@ func buildGrafoEulerDirigido[V comparable, T grafos.Numero](grafo grafos.Grafo[V
 
 func BuildGrafoEuler[V comparable, T grafos.Numero](seed int64, grafo grafos.Grafo[V,T], edge_quantity int,pesoProvider func(int) T,tipo int) (*V,*V,T){
 	rand.Seed(seed)
-	desde,hasta,total := buildGrafoEulerDirigido(grafo,edge_quantity,pesoProvider,tipo)
-
 	// Deberia chequearse que de haber quererse un camino euleriano, debe ser conexo, o almenos no disconjunto
-	return desde,hasta,total
+	return buildGrafoEulerDirigido(grafo,edge_quantity,pesoProvider,tipo)
 }

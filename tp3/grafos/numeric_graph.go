@@ -1,7 +1,6 @@
 package grafos
 import hash "tp3/diccionario"
 import "fmt"
-//T
 type grafoNumerico[V comparable, T Numero] struct{
 	hashConexiones hash.Diccionario[V,hash.Diccionario[V,T]]
 
@@ -206,29 +205,3 @@ func (grafo *grafoNumerico[V,T]) IterarAristas(visitar func(desde V, hasta V, pe
 	})
 }
 
-
-
-
-
-
-
-func (grafo *grafoNumerico[V,T]) MostrarTest(connString string) string {
-	res := ""
-
-	grafo.hashConexiones.Iterar(func (vertice V,conn hash.Diccionario[V,T]) bool{
-		res += fmt.Sprintf("------->%v\n",vertice)
-
-		conn.Iterar(func (hasta V,cantidad T) bool{
-			res += fmt.Sprintf(connString,hasta,cantidad)+"\n"
-			return true
-		})
-
-		return true
-	})
-
-
-	if res == ""{
-		res = "Sin vertices....\n"
-	}
-	return res
-}

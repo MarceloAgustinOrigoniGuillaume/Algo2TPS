@@ -1,0 +1,2 @@
+euler, test_camino_euler, tests/grafos/euler/0.camino_euler.pj, false
+0, *nil*, *nil*, 124329

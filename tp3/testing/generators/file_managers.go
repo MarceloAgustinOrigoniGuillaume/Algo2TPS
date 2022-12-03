@@ -12,13 +12,17 @@ import "time"
 
 
 const EULER_TEST = "euler"
-const TOPOLOGICO_TEST = "Topologico"
-const DIJKSTRA_TEST = "Dijkstra"
-const KRUSKAL_TEST = "Kruskal"
+const TOPOLOGICO_TEST = "topologico"
+const DIJKSTRA_TEST = "dijkstra"
+const KRUSKAL_TEST = "kruskal"
 const READ_PJ = "PJ"
 const READ_RECOMENDACIONES = "CSV_R"
 const NIL_MARK = "*nil*"
 const MS = 1000 //000
+
+const TEST_VOLUMEN = "volumen"
+
+
 //const ITINERARIO_TEST = "Itinerario"
 
 // Writing
@@ -59,11 +63,31 @@ func WritePj(file string,grafo grafos.Grafo[string,int]) error{
 
 
 
+func WriteVolumen(outFile string,pj_file string,titulo string,dirigido bool) error{
+	archivo, err := utils.AbrirOCrearArchivo(outFile)
+	defer archivo.Close()
 
+	if err != nil{
+		return err
+	}
+	args:= TEST_VOLUMEN+", "+titulo+", "+pj_file+", "
+
+	if dirigido{
+		args+= "true"
+	} else{
+		args+= "false"
+	}
+
+	archivo.WriteString(args)
+
+	return nil
+
+}
 
 func WriteEuler(outFile string,pj_file string,titulo string,dirigido bool,
 	desde *string,hasta *string,pesoTotal int,tipo int) error{
 	archivo, err := utils.AbrirOCrearArchivo(outFile)
+	defer archivo.Close()
 
 	if err != nil{
 		return err
@@ -117,63 +141,14 @@ type structTestEuler struct{
 	tipo int
 }
 
-func readEuler(test_file string) (structTestEuler,error){
-	linea := 0
-
-	test_struct := structTestEuler{}
-	var errorL error
-	err := utils.LeerArchivo(test_file, func (line string) bool{
-		if linea == 0{
-			splitted := strings.SplitN(line,", ",4)
-
-			if len(splitted) <4{
-				errorL = errors.New(fmt.Sprintf("Linea de credenciales tenia mal argumentos deberia ser <test>, <titulo>, <pj_file>, <es dirigido> fue : '%s'",line))
-			}
-
-			test_struct.titulo = splitted[1]
-			test_struct.pj_file = splitted[2]
-
-			if splitted[3] == "true"{
-				test_struct.dirigido = true
-			}
 
 
-		} else if linea == 1{
-			splitted := strings.SplitN(line,", ",4)
 
-			if len(splitted) <4{
-				errorL = errors.New(fmt.Sprintf("Linea de argumentos tenia mal argumentos, deberia ser <tipo>, <desde>, <hasta>, <peso total> fue : '%s'",line))
-			}
 
-			test_struct.tipo,errorL = strconv.Atoi(splitted[0])
-			if errorL != nil{
-				return false
-			}
-			
-			test_struct.pesoTotal,errorL = strconv.Atoi(splitted[3])
-
-			if errorL != nil{
-				return false
-			}
-
-			test_struct.desde = splitted[1]
-			test_struct.hasta = splitted[2]
-
-		}
-		linea ++
-		return errorL != nil || linea <2
-	})
-	
-	if errorL == nil{
-		errorL = err
-	} 
-
-	return test_struct,errorL
-}
 
 
 func runCicloEulerTest(grafo grafos.Grafo[string,int], origin string, test_info structTestEuler) (int64,error){
-	fmt.Printf("-->Ciclo euleriano:\n")
+	fmt.Printf("-->Ciclo euleriano: ")
 	timeTest := time.Now().UnixNano()
 	timeEnd := timeTest
 	camino,errC := grafosLib.CicloEuleriano(grafo,origin)
@@ -222,7 +197,7 @@ func runCicloEulerTest(grafo grafos.Grafo[string,int], origin string, test_info 
 
 
 func runCaminoEulerTest(grafo grafos.Grafo[string,int], origin string, test_info structTestEuler) (int64,error){
-	fmt.Printf("-->Camino euleriano:\n")
+	fmt.Printf("-->Camino euleriano: ")
 
 	timeTest := time.Now().UnixNano()
 	timeEnd := timeTest
@@ -264,17 +239,15 @@ func runCaminoEulerTest(grafo grafos.Grafo[string,int], origin string, test_info
 	return (timeEnd-timeTest),nil 
 }
 
-func ExecuteEulerTest(test_file string) (grafos.Grafo[string,int],error){
+
+// Executers
+
+func ExecuteEulerTest(test_info structTestEuler) (grafos.Grafo[string,int],error){
 	timeInit := time.Now().UnixNano()
 
-	test_info,errorL := readEuler(test_file)
-
-	if errorL != nil{
-		return nil,errorL
-	} 
 
 	grafo := grafos.GrafoNumericoPesado[string,int](test_info.dirigido)
-	errorL = pj.LeerPJ(test_info.pj_file,grafo,BasicRead,strconv.Atoi)
+	errorL := pj.LeerPJ(test_info.pj_file,grafo,BasicRead,strconv.Atoi)
 
 	if errorL != nil{
 		return nil,errorL
@@ -355,5 +328,134 @@ func ExecuteEulerTest(test_file string) (grafos.Grafo[string,int],error){
 
 
 
+func ExecuteTest(test_file string) (grafos.Grafo[string,int],error){
+
+	info,err := readTest(test_file)
+
+	if err != nil{
+		fmt.Printf("error : %s\n",err.Error())
+		return nil,err
+	}
+
+	return ExecuteEulerTest(info)
+}
 
 
+
+func readTest(test_file string) (structTestEuler,error){
+	linea := 0
+
+	test_struct := structTestEuler{}
+	var errorL error
+	err := utils.LeerArchivo(test_file, func (line string) bool{
+		if linea == 0{
+			splitted := strings.SplitN(line,", ",4)
+
+			if len(splitted) <4{
+				errorL = errors.New(fmt.Sprintf("Linea de credenciales tenia mal argumentos deberia ser <test>, <titulo>, <pj_file>, <es dirigido> fue : '%s'",line))
+			}
+			if splitted[0] != EULER_TEST {
+				errorL = errors.New(fmt.Sprintf("Por ahora solo se implemento el test euler"))
+				return false
+			}
+
+			test_struct.titulo = splitted[1]
+			test_struct.pj_file = splitted[2]
+
+			if splitted[3] == "true"{
+				test_struct.dirigido = true
+			}
+
+
+		} else if linea == 1{
+			splitted := strings.SplitN(line,", ",4)
+
+			if len(splitted) <4{
+				errorL = errors.New(fmt.Sprintf("Linea de argumentos tenia mal argumentos, deberia ser <tipo>, <desde>, <hasta>, <peso total> fue : '%s'",line))
+			}
+
+			test_struct.tipo,errorL = strconv.Atoi(splitted[0])
+			if errorL != nil{
+				return false
+			}
+			
+			test_struct.pesoTotal,errorL = strconv.Atoi(splitted[3])
+
+			if errorL != nil{
+				return false
+			}
+
+			test_struct.desde = splitted[1]
+			test_struct.hasta = splitted[2]
+
+		}
+		linea ++
+		return errorL != nil || linea <2
+	})
+	
+	if errorL == nil{
+		errorL = err
+	} 
+
+	return test_struct,errorL
+}
+
+
+
+/*
+
+func readEuler(test_file string) (structTestEuler,error){
+	linea := 0
+
+	test_struct := structTestEuler{}
+	var errorL error
+	err := utils.LeerArchivo(test_file, func (line string) bool{
+		if linea == 0{
+			splitted := strings.SplitN(line,", ",4)
+
+			if len(splitted) <4{
+				errorL = errors.New(fmt.Sprintf("Linea de credenciales tenia mal argumentos deberia ser <test>, <titulo>, <pj_file>, <es dirigido> fue : '%s'",line))
+			}
+
+			test_struct.titulo = splitted[1]
+			test_struct.pj_file = splitted[2]
+
+			if splitted[3] == "true"{
+				test_struct.dirigido = true
+			}
+
+
+		} else if linea == 1{
+			splitted := strings.SplitN(line,", ",4)
+
+			if len(splitted) <4{
+				errorL = errors.New(fmt.Sprintf("Linea de argumentos tenia mal argumentos, deberia ser <tipo>, <desde>, <hasta>, <peso total> fue : '%s'",line))
+			}
+
+			test_struct.tipo,errorL = strconv.Atoi(splitted[0])
+			if errorL != nil{
+				return false
+			}
+			
+			test_struct.pesoTotal,errorL = strconv.Atoi(splitted[3])
+
+			if errorL != nil{
+				return false
+			}
+
+			test_struct.desde = splitted[1]
+			test_struct.hasta = splitted[2]
+
+		}
+		linea ++
+		return errorL != nil || linea <2
+	})
+	
+	if errorL == nil{
+		errorL = err
+	} 
+
+	return test_struct,errorL
+}
+
+*/
