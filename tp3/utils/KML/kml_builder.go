@@ -3,6 +3,7 @@ package kml
 import "fmt"
 import "os"
 import "tp3/utils"
+import "tp3/cola"
 
 const KML = "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<kml xmlns=\"http://earth.google.com/kml/2.1\">\n\t<Document>\n\t\t<name>%s</name>\n%s\n\t</Document>\n</kml>\n"
 
@@ -26,8 +27,9 @@ func LINE_KML(name, fromLatitud, fromLongitud, toLatitud, toLongitud string) str
 }
 
 type KMLBuilder struct {
-	file    *os.File
-	started bool
+	file         *os.File
+	started      bool
+	colaDeLineas cola.Cola[func()]
 }
 
 func CrearKML(outFile string) (*KMLBuilder, error) {
@@ -40,7 +42,6 @@ func CrearKML(outFile string) (*KMLBuilder, error) {
 	builder := new(KMLBuilder)
 
 	builder.file = archivo
-
 	return builder, nil
 }
 func (builder *KMLBuilder) StartKML(title string) {
@@ -49,12 +50,19 @@ func (builder *KMLBuilder) StartKML(title string) {
 	}
 	builder.started = true
 	builder.file.WriteString(fmt.Sprintf(KML_START, title))
+
+	builder.colaDeLineas = cola.CrearColaEnlazada[func()]() // Para asegurar que las lineas esten al final, se encolan funciones, para no guardar en structs
 }
 
 func (builder *KMLBuilder) CloseKML() {
 	if !builder.started {
 		return
 	}
+
+	for !builder.colaDeLineas.EstaVacia() {
+		builder.colaDeLineas.Desencolar()()
+	}
+
 	builder.file.WriteString(KML_END)
 	builder.Close()
 }
@@ -72,8 +80,7 @@ func (builder *KMLBuilder) AddPoint(name, latitud, longitud string) {
 }
 
 func (builder *KMLBuilder) AddLine(name, fromLatitud, fromLongitud, toLatitud, toLongitud string) {
-	if !builder.started {
-		return
-	}
-	builder.file.WriteString(fmt.Sprintf(KML_LINE, name, fromLatitud, fromLongitud, toLatitud, toLongitud))
+	builder.colaDeLineas.Encolar(func() {
+		builder.file.WriteString(fmt.Sprintf(KML_LINE, name, fromLatitud, fromLongitud, toLatitud, toLongitud))
+	})
 }
