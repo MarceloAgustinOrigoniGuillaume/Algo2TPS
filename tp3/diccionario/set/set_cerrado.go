@@ -3,13 +3,13 @@ package set
 import "tp3/diccionario/utilities"
 
 const (
-	_CAPACIDAD_INICIAL            = 128
-	_MAXIMA_CARGA                 = 80  // esta constante tendria unidad de 1%, osea 80 = 80%
-	_MINIMA_CARGA                 = 5   // esta constante tendria unidad de 1%, osea 5 = 5%
-	_100PORCIENTO                 = 100 // representa la totalidad, el 100% de algo en el mismo sistema de unidades
+	_CAPACIDAD_INICIAL = 128
+	_MAXIMA_CARGA      = 80  // esta constante tendria unidad de 1%, osea 80 = 80%
+	_MINIMA_CARGA      = 5   // esta constante tendria unidad de 1%, osea 5 = 5%
+	_100PORCIENTO      = 100 // representa la totalidad, el 100% de algo en el mismo sistema de unidades
 	//_PROPORCION                   = 2 // Seria en realidad 5/4, 1,2 pero se redondea para arriba
-	ERROR_NO_ESTABA               = "La clave no pertenece al set"
-	ERROR_ITERADOR_TERMINO        = "El iterador termino de iterar"
+	ERROR_NO_ESTABA                         = "La clave no pertenece al set"
+	ERROR_ITERADOR_TERMINO                  = "El iterador termino de iterar"
 	_VACIO                 utilities.Status = 0
 	_BORRADO               utilities.Status = -1
 	_OCUPADO               utilities.Status = 1
@@ -20,11 +20,11 @@ type elementoCerrado[K comparable] struct {
 	estado utilities.Status
 }
 
-func (elem elementoCerrado[K]) Key() K{
+func (elem elementoCerrado[K]) Key() K {
 	return elem.clave
 }
 
-func (elem elementoCerrado[K]) Status() utilities.Status{
+func (elem elementoCerrado[K]) Status() utilities.Status {
 	return elem.estado
 }
 
@@ -37,7 +37,7 @@ func crearElementoCerradoVacio[K comparable]() utilities.ElementoCerrado[K] {
 }
 
 func crearElementoBorrado[K comparable]() utilities.ElementoCerrado[K] {
-	elem:= elementoCerrado[K]{}
+	elem := elementoCerrado[K]{}
 	elem.estado = _BORRADO
 	return elem
 }
@@ -65,15 +65,14 @@ func CrearSet[K comparable]() Set[K] {
 func CrearSetWith[K comparable](capacidad_inicial int) Set[K] {
 	set := new(setCerrado[K])
 
-	capacidad_inicial = (int)(capacidad_inicial * _100PORCIENTO/_MAXIMA_CARGA) + 1 // se asegura no se redimensione con esa cap
-	if capacidad_inicial < _CAPACIDAD_INICIAL{
+	capacidad_inicial = (int)(capacidad_inicial*_100PORCIENTO/_MAXIMA_CARGA) + 1 // se asegura no se redimensione con esa cap
+	if capacidad_inicial < _CAPACIDAD_INICIAL {
 		capacidad_inicial = _CAPACIDAD_INICIAL
 	}
 
 	set.elementos = crearTabla[K](capacidad_inicial)
 	return set
 }
-
 
 /*
 	La unidad usada en la comparacion del factor de carga es el 1% para permitir mayor precision.
@@ -102,7 +101,6 @@ func (set *setCerrado[K]) ocupaMuchaMemoria() bool {
 	return len(set.elementos) >= 2*_CAPACIDAD_INICIAL && _100PORCIENTO*set.cantidad <= _MINIMA_CARGA*len(set.elementos)
 }
 
-
 func (set *setCerrado[K]) redimensionar(nuevoLargo int) {
 	nuevos := crearTabla[K](nuevoLargo)
 	set.borrados = 0
@@ -117,7 +115,7 @@ func (set *setCerrado[K]) redimensionar(nuevoLargo int) {
 
 }
 
-func (set *setCerrado[K]) Guardar(clave K) bool{
+func (set *setCerrado[K]) Guardar(clave K) bool {
 	if set.superoCargaPermitida() {
 		set.redimensionar(4 * len(set.elementos))
 	}
@@ -151,10 +149,10 @@ func (set *setCerrado[K]) Pertenece(clave K) bool {
 func (set *setCerrado[K]) Borrar(clave K) bool {
 	elemento := set.dameElemento(utilities.BuscarPosicionElementoCerrado(set.elementos, clave))
 
-	if(elemento == nil){
+	if elemento == nil {
 		return false
 	}
-	
+
 	set.cantidad--
 	*elemento = crearElementoBorrado[K]()
 	set.borrados++

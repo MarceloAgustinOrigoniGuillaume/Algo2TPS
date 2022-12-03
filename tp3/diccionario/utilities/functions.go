@@ -1,6 +1,6 @@
 package utilities
-import "fmt"
 
+import "fmt"
 
 func toBytes(objeto interface{}) []byte {
 
@@ -23,10 +23,6 @@ func _JenkinsHashFunction(bytes []byte) int {
 
 	return res
 }
-
-
-
-
 
 func AplicarFuncionDeHash[K comparable](clave K, maximo int) int { // paso intermedio para hacer mas facil cambios
 	return _JenkinsHashFunction(toBytes(clave)) % maximo

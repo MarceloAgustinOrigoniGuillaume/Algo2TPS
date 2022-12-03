@@ -1,18 +1,17 @@
 package utilities
+
 type Status = int
 
 const (
-	_VACIO                 Status = 0
-	_BORRADO               Status = -1
-	_OCUPADO               Status = 1
+	_VACIO   Status = 0
+	_BORRADO Status = -1
+	_OCUPADO Status = 1
 )
 
-type ElementoCerrado[K comparable] interface{
+type ElementoCerrado[K comparable] interface {
 	Key() K
 	Status() Status
 }
-
-
 
 func deberiaSeguir[K comparable](elemento ElementoCerrado[K], clave K) bool {
 	return elemento.Status() != _VACIO && elemento.Key() != clave
