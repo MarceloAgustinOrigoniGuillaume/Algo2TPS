@@ -3,20 +3,17 @@ package agencia
 import kml "tp3/utils/KML"
 import pj "tp3/utils/PJ"
 import utils "tp3/utils"
-import cola "tp3/cola" //utilities
+import cola "tp3/cola"
 import "tp3/grafos"
 import libGrafos "tp3/grafos/lib"
 import hash "tp3/diccionario"
-import set "tp3/diccionario/set"
-
-//.Arista
 
 import "fmt"
 import "errors"
 import "strconv"
 import "strings"
 
-const MSJ_REDUCIR = "Peso Total: %d"
+const MSJ_REDUCIR = "Peso total: %d"
 const NAME_KML_LINE = "from: %s to: %s"
 const NAME_CAMINO = "Peso Total: %f"
 const MSJ_TOTAL = "\nTiempo total: %d"
@@ -250,13 +247,7 @@ func (agencia *agenciaStruct) ViajeDesde(desde string, outFile string) (string, 
 	if err == nil {
 		builder.StartKML(fmt.Sprintf("Camino desde y hasta %s pasando por todas las rutas", desde))
 
-		setAgregados := set.CrearSetWith[string](agencia.grafoLugar.CantidadVertices())
 		res = agencia.iterarCiudadesCamino(camino, func(bfr_ciudad, act_ciudad ciudadStruct) bool {
-
-			if setAgregados.Guardar(act_ciudad.nombre) {
-				builder.AddPoint(act_ciudad.nombre, act_ciudad.latitud, act_ciudad.longitud)
-			}
-
 			builder.AddLine( // add a line
 				fmt.Sprintf(NAME_KML_LINE, bfr_ciudad.nombre, act_ciudad.nombre), // title
 				bfr_ciudad.latitud, bfr_ciudad.longitud, // start coords
