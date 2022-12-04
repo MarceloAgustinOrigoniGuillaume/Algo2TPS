@@ -12,7 +12,7 @@ const KML_END = "\n\t</Document>\n</kml>\n"
 
 const KML_POINT = "\t\t<Placemark>\n\t\t\t<name>%s</name>\n\t\t\t<Point>\n\t\t\t\t<coordinates>%s, %s</coordinates>\n\t\t\t</Point>\n\t\t</Placemark>\n"
 
-const KML_LINE = "\t\t<Placemark>\n\t\t\t<name>%s</name>\n\t\t\t<LineString>\n\t\t\t\t<coordinates>%s, %s %s, %s</coordinates>\n\t\t\t</LineString>\n\t\t</Placemark>\n"
+const KML_LINE = "\t\t<Placemark>\n\t\t\t<LineString>\n\t\t\t\t<coordinates>%s, %s %s, %s</coordinates>\n\t\t\t</LineString>\n\t\t</Placemark>\n"
 
 func FORMAT_KML(title string, elements string) string {
 	return fmt.Sprintf(KML, title, elements)
@@ -22,8 +22,8 @@ func POINT_KML(name, latitud, longitud string) string {
 	return fmt.Sprintf(KML_POINT, name, latitud, longitud)
 }
 
-func LINE_KML(name, fromLatitud, fromLongitud, toLatitud, toLongitud string) string {
-	return fmt.Sprintf(KML_LINE, name, fromLatitud, fromLongitud, toLatitud, toLongitud)
+func LINE_KML(fromLatitud, fromLongitud, toLatitud, toLongitud string) string {
+	return fmt.Sprintf(KML_LINE, fromLatitud, fromLongitud, toLatitud, toLongitud)
 }
 
 type KMLBuilder struct {
@@ -79,6 +79,6 @@ func (builder *KMLBuilder) AddPoint(name, latitud, longitud string) {
 	builder.file.WriteString(POINT_KML(name, latitud, longitud))
 }
 
-func (builder *KMLBuilder) AddLine(name, fromLatitud, fromLongitud, toLatitud, toLongitud string) {
-	builder.colaDeLineas.Encolar(func() { builder.file.WriteString(LINE_KML(name, fromLatitud, fromLongitud, toLatitud, toLongitud)) })
+func (builder *KMLBuilder) AddLine(fromLatitud, fromLongitud, toLatitud, toLongitud string) {
+	builder.colaDeLineas.Encolar(func() { builder.file.WriteString(LINE_KML(fromLatitud, fromLongitud, toLatitud, toLongitud)) })
 }
