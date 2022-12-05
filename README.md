@@ -16,4 +16,9 @@ TpABB
 
 TpHeap
 
-- FINISH? TO REVIEW
+- FINISH
+
+Tp 2 Finish
+
+Tp3
+- Have to end testing package
