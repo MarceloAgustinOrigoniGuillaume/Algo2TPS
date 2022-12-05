@@ -1,4 +1,4 @@
-# Repositorio para hacer control de version de los trabajos practicos grupales de Algoritmos y Programacion 2
+# Repositorio para hacer control de version de los trabajos practicos de Algoritmos y Programacion 2
 
 TpLista
 - FINISH
@@ -18,7 +18,8 @@ TpHeap
 
 - FINISH
 
-Tp 2 Finish
+Tp 2
+- Finish
 
 Tp3
 - Have to end testing package
