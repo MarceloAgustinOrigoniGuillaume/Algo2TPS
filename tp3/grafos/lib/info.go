@@ -20,7 +20,7 @@ func CrearErrorGrafo(err string) error {
 
 // O(V + E)
 func GradosDeSalida[V comparable, T any](grafo grafos.Grafo[V, T]) hash.Diccionario[V, int] {
-	res := hash.CrearHash[V, int]() //make([]int, len(vertices))
+	res := hash.CrearHash[V, int]()
 
 	grafo.IterarVertices(func(vert V) bool {
 		res.Guardar(vert, len(grafo.ObtenerAdyacentes(vert)))

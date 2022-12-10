@@ -49,7 +49,7 @@ func (grafo *grafoNumerico[V, T]) CantidadAristas() int {
 func (grafo *grafoNumerico[V, T]) AgregarVertice(vertice V) {
 	if grafo.hashConexiones.Pertenece(vertice) {
 		fmt.Printf("\nWarning: se intento agregar un vertice mas de una vez: %v\n", vertice)
-		//panic("Se intento agregar un vertice que ya existia")
+		//Sin panic mejor, capaz es mejor retornar un error?
 		return
 	}
 	grafo.hashConexiones.Guardar(vertice, hash.CrearHash[V, T]())

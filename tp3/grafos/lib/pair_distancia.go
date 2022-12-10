@@ -1,7 +1,7 @@
 package lib
 
 import "tp3/grafos"
-
+// Capaz se podria reemplazar con uso de Arista y ya
 type PairDistancia[V any, T grafos.Numero] struct {
 	desde     *V
 	visitado  V

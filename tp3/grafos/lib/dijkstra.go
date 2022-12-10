@@ -11,13 +11,10 @@ import "fmt"
 
 func Dijkstra[V comparable, T grafos.Numero](grafo grafos.Grafo[V, T], origen V, visitar func(PairDistancia[V, T]) bool) {
 	distancias := hash.CrearHash[V, T]()
-	//distanciasMasCortas := hash.CrearHash[V,T]()
 	visitados := set.CrearSetWith[V](grafo.CantidadVertices())
 
-	//padres := hash.CrearHash[V,V]()
 	aVisitar := heap.CrearHeap[PairDistancia[V, T]](comparadorDistancias[V, T])
 
-	//visitados.Guardar(visitar(origen))
 	distancias.Guardar(origen, 0)
 	aVisitar.Encolar(CrearPairDistancia[V, T](nil, origen, 0))
 
@@ -35,7 +32,8 @@ func Dijkstra[V comparable, T grafos.Numero](grafo grafos.Grafo[V, T], origen V,
 
 			if pairVisitado.distancia < distancias.Obtener(pairVisitado.Actual()) { // fue mejorado? hubo pesos negativos, mal, no uses dijkstra
 				fmt.Printf("\nHubo habia negativos? se quiso mejorar una segunda vez %v < %v\n", pairVisitado.distancia, distancias.Obtener(pairVisitado.Actual()))
-				return //panic("Se uso Dijkstra con pesos negativos, Dijkstra no funciona con pesos negativos")
+				// panic ? mejor no
+				return 
 			}
 
 			continue
@@ -50,7 +48,7 @@ func Dijkstra[V comparable, T grafos.Numero](grafo grafos.Grafo[V, T], origen V,
 
 		grafo.IterarAdyacentes(visitadoCopy, func(ady V, peso T) bool {
 
-			distanciaActual = pairVisitado.Distancia() + peso //grafo.ObtenerArista(pairVisitado.visitado,ady).Peso()
+			distanciaActual = pairVisitado.Distancia() + peso
 			if !distancias.Pertenece(ady) || distanciaActual < distancias.Obtener(ady) {
 				distancias.Guardar(ady, distanciaActual)
 				aVisitar.Encolar(CrearPairDistancia(visitado, ady, distanciaActual))

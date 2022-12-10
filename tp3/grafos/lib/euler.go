@@ -105,12 +105,11 @@ func recorridoEulerDirigido[V comparable, T any](grafo grafos.Grafo[V, T], orige
 	})
 
 	if (diff != 0 && end == nil) || (end != nil && !aceptarSemi) { // no se pudo o no se acepta
-		//fmt.Printf("ni intentes el camino euleriano, dirigido\n")
 		return false
 	}
-	//fmt.Printf("intenta el camino euleriano, dirigido\n")
 
 	//recorrido
+
 	_dfsAristasDirigido(aristasAVisitar, origen, visitar)
 
 	return end == nil
@@ -152,10 +151,8 @@ func recorridoEulerNoDirigido[V comparable, T any](grafo grafos.Grafo[V, T], ori
 
 	// si hay distinto de 2 impares no hay , o si no se acepta semi paras aca
 	if cantidadImpares != 0 && (!aceptarSemi || cantidadImpares != 2) {
-		////fmt.Printf("ni intentes el camino euleriano, no dirigido\n")
 		return false
 	}
-	////fmt.Printf("intenta , no dirigido\n")
 
 	_dfsAristasNoDirigido(aristasAVisitar, aristasAVisitar.Obtener(origen), origen, visitar)
 
@@ -165,11 +162,8 @@ func recorridoEulerNoDirigido[V comparable, T any](grafo grafos.Grafo[V, T], ori
 func RecorridoEuleriano[V comparable, T any](grafo grafos.Grafo[V, T], origen V, aceptarSemi bool, visitar func(visitado V)) bool {
 
 	if grafo.EsDirigido() {
-		////fmt.Printf("euler dirigido\n")
-
 		return recorridoEulerDirigido(grafo, origen, aceptarSemi, visitar)
 	}
-	////fmt.Printf("euler no dirigido\n")
 
 	return recorridoEulerNoDirigido(grafo, origen, aceptarSemi, visitar)
 }
@@ -185,7 +179,6 @@ func CicloEuleriano[V comparable, T any](grafo grafos.Grafo[V, T], origen V) ([]
 	longitud := 0
 	RecorridoEuleriano(grafo, origen, false, func(visitado V) {
 		camino.Apilar(visitado)
-		////fmt.Printf("CicloEuleriano visitando -->%v\n",visitado)
 		longitud++
 	})
 
@@ -217,7 +210,6 @@ func CaminoEuleriano[V comparable, T any](grafo grafos.Grafo[V, T], origen V) ([
 	longitud := 0
 	RecorridoEuleriano(grafo, origen, true, func(visitado V) {
 		camino.Apilar(visitado)
-		////fmt.Printf("CaminoEuleriano visitando -->%v\n",visitado)
 		longitud++
 	})
 
@@ -227,8 +219,6 @@ func CaminoEuleriano[V comparable, T any](grafo grafos.Grafo[V, T], origen V) ([
 	}
 
 	if longitud != longitudCamino+1 {
-
-		//fmt.Printf("LONG SHOULD BE %d is %d\n",longitudCamino+1,longitud)
 		return nil, CrearErrorGrafo(fmt.Sprintf("El grafo NO tenia un camino euleriano que empieze en %v, %d", origen, longitud))
 	}
 

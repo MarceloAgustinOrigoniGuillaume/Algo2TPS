@@ -4,7 +4,6 @@ import "os"
 import "bufio"
 import "strings"
 
-// C:\\Data\\FIUBA\\GO\\TPSAlgo2
 const URL_BASE = "archivosDados/tp3/"
 const URL_BASE_OUT = "../../tp3Out/"
 
