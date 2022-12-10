@@ -33,7 +33,7 @@ func Dijkstra[V comparable, T grafos.Numero](grafo grafos.Grafo[V, T], origen V,
 			if pairVisitado.distancia < distancias.Obtener(pairVisitado.Actual()) { // fue mejorado? hubo pesos negativos, mal, no uses dijkstra
 				fmt.Printf("\nHubo habia negativos? se quiso mejorar una segunda vez %v < %v\n", pairVisitado.distancia, distancias.Obtener(pairVisitado.Actual()))
 				// panic ? mejor no
-				return 
+				return
 			}
 
 			continue
