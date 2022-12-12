@@ -73,7 +73,7 @@ type hashCerrado[K comparable, V any] struct {
 	borrados  int
 }
 
-func CrearHash[K comparable, V any]() Diccionario[K, V] {
+func CrearHashCerrado[K comparable, V any]() Diccionario[K, V] {
 	hash := new(hashCerrado[K, V])
 	hash.elementos = crearTabla[K, V](_CAPACIDAD_INICIAL)
 	return hash
