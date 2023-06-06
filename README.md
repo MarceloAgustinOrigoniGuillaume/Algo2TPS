@@ -16,4 +16,16 @@ TpABB
 
 TpHeap
 
-- FINISH? TO REVIEW
+- FINISH
+
+
+Tp Grafos
+
+- FINISH
+
+
+ESTE CAMBIO QUE ES? DIGAMOS EL ANTERIOR FUE UI y ahora volvi para pushear alguno cambio respecto a modelo
+
+Digamos antes, modifique agregando el manejo de views a los controladores
+
+ahora quiero agregar el tema de notificar, tema entre controladores. Ambos tomaron como base a la misma rama 
